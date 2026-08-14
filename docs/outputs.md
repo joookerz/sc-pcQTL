@@ -52,3 +52,10 @@ results/
 `pipeline_info/` contains `analysis_parameters.json`, the normalized
 `validated_samplesheet.csv`, the resolved SAIGE-QTL table, trace, report,
 timeline, DAG, and any auto-generated variance-ratio marker set.
+
+`analysis_parameters.json` preserves the resolved pipeline parameters and also
+records the workflow revision/commit, session and run names, Nextflow version,
+selected profiles, container engine, and configured core/QTL image names. The
+`container` column in `execution_trace.txt` records the image resolved for each
+executed task and is authoritative when a site config overrides a process
+container directly.

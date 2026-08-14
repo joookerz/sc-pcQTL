@@ -30,7 +30,8 @@ Required:
 
 Execution:
   -profile docker|podman     macOS or Linux workstation
-  -profile apptainer,slurm   Linux HPC execution
+  -profile apptainer,slurm   Linux HPC with Slurm
+  -profile apptainer,sge     Linux HPC with SGE/UGE
 
 Core options:
   --pair_scope fast|complete
@@ -113,6 +114,23 @@ workflow {
     userSaige = channel.value(file(params.saige_params ?: "${projectDir}/assets/empty_saige_params.tsv", checkIfExists: true))
     runParameters = new LinkedHashMap(params)
     runParameters.workflow_version = workflow.manifest.version
+    runParameters.workflow = [
+        project_name: workflow.projectName?.toString(),
+        repository: workflow.repository?.toString(),
+        revision: workflow.revision?.toString(),
+        commit_id: workflow.commitId?.toString(),
+        session_id: workflow.sessionId?.toString(),
+        run_name: workflow.runName?.toString(),
+        profile: workflow.profile?.toString(),
+        command_line: workflow.commandLine?.toString(),
+        nextflow_version: nextflow.version?.toString(),
+        container_engine: workflow.containerEngine?.toString(),
+        resume: workflow.resume as Boolean
+    ]
+    runParameters.configured_containers = [
+        core: params.core_container?.toString(),
+        saigeqtl: params.saige_container?.toString()
+    ]
 
     WRITE_RUN_METADATA(channel.value(runParameters))
     PREPARE_CELLTYPE(samples, annotation, workflowBin)

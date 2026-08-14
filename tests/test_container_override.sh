@@ -51,6 +51,9 @@ nextflow -c "$root/nextflow.config" run "$scratch/project/main.nf" \
 
 grep -Fq 'example.invalid/core:test' "$SCPCQTL_DOCKER_CAPTURE"
 grep -Fq 'example.invalid/saige:test' "$SCPCQTL_DOCKER_CAPTURE"
+grep -q $'\tcontainer$' "$scratch/output/pipeline_info/execution_trace.txt"
+grep -Fq 'example.invalid/core:test' "$scratch/output/pipeline_info/execution_trace.txt"
+grep -Fq 'example.invalid/saige:test' "$scratch/output/pipeline_info/execution_trace.txt"
 if grep -Fq 'ghcr.io/joookerz/sc-pcqtl-' "$SCPCQTL_DOCKER_CAPTURE"; then
   printf 'A default image was used despite explicit container overrides.\n' >&2
   exit 1

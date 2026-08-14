@@ -53,6 +53,10 @@ export SCPCQTL_NEXTFLOW="$runtime/bin/nextflow"
 
 "$root/bin/sc-pcqtl" doctor >/dev/null
 "$root/bin/sc-pcqtl" doctor --deep >/dev/null
+if TMPDIR="$runtime/missing" "$root/bin/sc-pcqtl" doctor >/dev/null 2>&1; then
+  printf 'Doctor accepted a missing TMPDIR.\n' >&2
+  exit 1
+fi
 if "$root/bin/sc-pcqtl" doctor --unknown >/dev/null 2>&1; then
   printf 'Unknown doctor option was not rejected.\n' >&2
   exit 1

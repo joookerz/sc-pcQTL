@@ -49,7 +49,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-for tool in bash curl tar sed install mktemp uname; do
+for tool in bash curl tar sed install mktemp mv uname; do
   command -v "$tool" >/dev/null 2>&1 || {
     printf 'Required command is missing: %s\n' "$tool" >&2
     exit 1
@@ -77,18 +77,51 @@ compatible_java() {
 }
 
 bundled_java_home() {
-  if [[ -x "$install_root/java17/bin/java" ]]; then
-    printf '%s\n' "$install_root/java17"
-  elif [[ -x "$install_root/java17/Contents/Home/bin/java" ]]; then
-    printf '%s\n' "$install_root/java17/Contents/Home"
-  else
-    return 1
+  local candidate=''
+  if [[ -s "$install_root/java-home" ]]; then
+    IFS= read -r candidate < "$install_root/java-home"
+    if compatible_java "$candidate/bin/java"; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
   fi
+  for candidate in \
+    "$install_root/java17" \
+    "$install_root/java17/Contents/Home"; do
+    if compatible_java "$candidate/bin/java"; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+write_java_home_pointer() {
+  local java_runtime=$1 pointer_candidate
+  pointer_candidate=$(mktemp "$install_root/.java-home.XXXXXX")
+  cleanup_files+=("$pointer_candidate")
+  printf '%s\n' "$java_runtime" > "$pointer_candidate"
+  mv -f "$pointer_candidate" "$install_root/java-home"
+}
+
+cleanup() {
+  local path
+  rm -rf "$temporary_dir"
+  for path in "${cleanup_files[@]}"; do
+    [[ ! -e "$path" ]] || rm -f -- "$path"
+  done
+  for path in "${cleanup_dirs[@]}"; do
+    [[ -z "$path" || "$path" == "$keep_java_dir" || ! -e "$path" ]] || \
+      rm -rf -- "$path"
+  done
 }
 
 mkdir -p "$install_root" "$bin_dir"
 temporary_dir=$(mktemp -d "${TMPDIR:-/tmp}/scpcqtl-install.XXXXXX")
-trap 'rm -rf "$temporary_dir"' EXIT
+cleanup_files=()
+cleanup_dirs=()
+keep_java_dir=''
+trap cleanup EXIT
 
 java_home=''
 java_executable=''
@@ -120,24 +153,34 @@ if [[ -z "$java_executable" ]]; then
     *) printf 'Unsupported CPU architecture: %s\n' "$(uname -m)" >&2; exit 1 ;;
   esac
   java_url="https://api.adoptium.net/v3/binary/latest/17/ga/${adoptium_os}/${adoptium_arch}/jre/hotspot/normal/eclipse?project=jdk"
-  printf 'Installing Temurin Java 17 under %s\n' "$install_root/java17"
+  printf 'Installing Temurin Java 17 under %s\n' "$install_root/jvm"
   curl -fL --retry 3 "$java_url" -o "$temporary_dir/java.tar.gz"
-  mkdir -p "$temporary_dir/java17"
-  tar -xzf "$temporary_dir/java.tar.gz" -C "$temporary_dir/java17" --strip-components=1
-  if [[ ! -e "$install_root/java17" ]]; then
-    mv "$temporary_dir/java17" "$install_root/java17"
-  fi
-  java_home=$(bundled_java_home)
+  mkdir -p "$install_root/jvm"
+  java_home=$(mktemp -d "$install_root/jvm/temurin-17.XXXXXX")
+  cleanup_dirs+=("$java_home")
+  tar -xzf "$temporary_dir/java.tar.gz" -C "$java_home" --strip-components=1
+  [[ -x "$java_home/bin/java" ]] || java_home="$java_home/Contents/Home"
+  compatible_java "$java_home/bin/java" || {
+    printf 'Downloaded Temurin runtime is missing a compatible Java executable.\n' >&2
+    exit 1
+  }
+  keep_java_dir=${java_home%/Contents/Home}
+  write_java_home_pointer "$java_home"
   java_executable=$java_home/bin/java
 fi
 
 nextflow_dir="$install_root/nextflow/$nextflow_version"
 nextflow_executable="$nextflow_dir/nextflow"
 nextflow_home="$install_root/nextflow-home"
+nextflow_candidate=$nextflow_executable
+install_nextflow=false
 if [[ ! -x "$nextflow_executable" ]]; then
   mkdir -p "$nextflow_dir" "$temporary_dir/nextflow"
+  nextflow_candidate=$(mktemp "$nextflow_dir/.nextflow.XXXXXX")
+  cleanup_files+=("$nextflow_candidate")
+  install_nextflow=true
   if [[ -n "${SCPCQTL_NEXTFLOW_SOURCE:-}" ]]; then
-    install -m 0755 "$SCPCQTL_NEXTFLOW_SOURCE" "$nextflow_executable"
+    install -m 0755 "$SCPCQTL_NEXTFLOW_SOURCE" "$nextflow_candidate"
   else
     printf 'Installing Nextflow %s under %s\n' "$nextflow_version" "$nextflow_dir"
     curl -fsSL https://get.nextflow.io -o "$temporary_dir/get-nextflow.sh"
@@ -147,13 +190,14 @@ if [[ ! -x "$nextflow_executable" ]]; then
       export NXF_VER="$nextflow_version"
       export NXF_HOME="$nextflow_home"
       [[ -n "$java_home" ]] && export JAVA_HOME="$java_home"
+      export JAVA_CMD="$java_executable"
       bash < "$temporary_dir/get-nextflow.sh" >/dev/null
     )
     [[ -x "$temporary_dir/nextflow/nextflow" ]] || {
       printf 'Nextflow bootstrap did not create an executable.\n' >&2
       exit 1
     }
-    install -m 0755 "$temporary_dir/nextflow/nextflow" "$nextflow_executable"
+    install -m 0755 "$temporary_dir/nextflow/nextflow" "$nextflow_candidate"
   fi
 fi
 
@@ -161,7 +205,8 @@ nextflow_output=$(
   export PATH="$(dirname "$java_executable"):$PATH"
   export NXF_HOME="$nextflow_home"
   [[ -n "$java_home" ]] && export JAVA_HOME="$java_home"
-  "$nextflow_executable" -version 2>&1
+  export JAVA_CMD="$java_executable"
+  "$nextflow_candidate" -version 2>&1
 ) || {
   printf 'Installed Nextflow could not start.\n%s\n' "$nextflow_output" >&2
   exit 1
@@ -177,6 +222,9 @@ fi
     "$nextflow_version" "$installed_nextflow_version" >&2
   exit 1
 }
+if [[ "$install_nextflow" == true ]]; then
+  mv -f "$nextflow_candidate" "$nextflow_executable"
+fi
 
 launcher_source=''
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || true)
@@ -188,12 +236,20 @@ else
   launcher_source=$temporary_dir/sc-pcqtl
   curl -fsSL "$launcher_url" -o "$launcher_source"
 fi
-mkdir -p "$install_root/bin"
-install -m 0755 "$launcher_source" "$install_root/bin/sc-pcqtl"
+internal_launcher_dir="$install_root/libexec"
+internal_launcher="$internal_launcher_dir/sc-pcqtl.real"
+mkdir -p "$internal_launcher_dir"
+internal_launcher_candidate=$(mktemp "$internal_launcher_dir/.sc-pcqtl.real.XXXXXX")
+cleanup_files+=("$internal_launcher_candidate")
+install -m 0755 "$launcher_source" "$internal_launcher_candidate"
+mv -f "$internal_launcher_candidate" "$internal_launcher"
 
 quoted_nextflow=$(printf '%q' "$nextflow_executable")
 quoted_nextflow_home=$(printf '%q' "$nextflow_home")
-quoted_launcher=$(printf '%q' "$install_root/bin/sc-pcqtl")
+quoted_java=$(printf '%q' "$java_executable")
+quoted_launcher=$(printf '%q' "$internal_launcher")
+wrapper_candidate=$(mktemp "$bin_dir/.sc-pcqtl.XXXXXX")
+cleanup_files+=("$wrapper_candidate")
 {
   printf '%s\n' '#!/usr/bin/env bash'
   if [[ -n "$java_home" ]]; then
@@ -201,14 +257,16 @@ quoted_launcher=$(printf '%q' "$install_root/bin/sc-pcqtl")
     printf 'export JAVA_HOME=%s\n' "$quoted_java_home"
     printf '%s\n' 'export PATH="$JAVA_HOME/bin:$PATH"'
   fi
+  printf 'export JAVA_CMD=%s\n' "$quoted_java"
   printf 'if [[ -z "${NXF_HOME:-}" ]]; then export NXF_HOME=%s; fi\n' \
     "$quoted_nextflow_home"
   cat <<EOF
 export SCPCQTL_NEXTFLOW=$quoted_nextflow
 exec $quoted_launcher "\$@"
 EOF
-} > "$bin_dir/sc-pcqtl"
-chmod 0755 "$bin_dir/sc-pcqtl"
+} > "$wrapper_candidate"
+chmod 0755 "$wrapper_candidate"
+mv -f "$wrapper_candidate" "$bin_dir/sc-pcqtl"
 
 printf '\nInstalled sc-pcqtl: %s\n' "$bin_dir/sc-pcqtl"
 case ":$PATH:" in

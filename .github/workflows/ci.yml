@@ -16,10 +16,11 @@ jobs:
           java-version: '17'
       - name: Validate portable installer and launcher
         run: |
-          bash -n install.sh bin/sc-pcqtl tests/test_installer.sh tests/test_installer_download.sh tests/test_launcher.sh tests/test_container_override.sh
+          bash -n install.sh bin/sc-pcqtl tests/test_installer.sh tests/test_installer_download.sh tests/test_clean_host_install.sh tests/test_launcher.sh tests/test_container_override.sh tests/test_hpc_tmpdir.sh tests/test_resume_reports.sh
           bash install.sh --help >/dev/null
           tests/test_installer.sh
           tests/test_installer_download.sh
+          tests/test_clean_host_install.sh
           tests/test_launcher.sh
 
   nextflow-lint:
@@ -50,9 +51,10 @@ jobs:
           done
           nextflow lint main.nf
           tests/test_container_override.sh
+          tests/test_hpc_tmpdir.sh
+          tests/test_resume_reports.sh
 
   build-core:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4

@@ -25,7 +25,7 @@ The installer works without administrator privileges on Linux and macOS. It:
 
 1. reuses a compatible Java already on `PATH` or in `JAVA_HOME`;
 2. otherwise installs a private Temurin Java 17 runtime under
-   `~/.local/share/sc-pcqtl`;
+   `~/.local/share/sc-pcqtl/jvm` and updates an atomic `java-home` pointer;
 3. installs Nextflow 25.10.7 under the same directory; and
 4. installs `sc-pcqtl` into `~/.local/bin`.
 
@@ -113,11 +113,23 @@ sc-pcqtl run \
   [parameters]
 ```
 
+Sun/Univa Grid Engine sites can use `SCPCQTL_EXTRA_PROFILES=sge`. Queue names,
+parallel environments, account strings, and resource syntax remain
+site-specific and should be supplied in an institutional config rather than
+hard-coded in the portable profile.
+
 Set a shared cache to prevent repeated image downloads:
 
 ```bash
 export NXF_APPTAINER_CACHEDIR=/shared/path/sc-pcqtl-containers
 ```
+
+The Apptainer and Singularity profiles bind the host `TMPDIR` to the same path
+inside each container so SAIGE-QTL/Pixi can use scheduler-provided scratch.
+`TMPDIR` must exist, be writable, be absolute, and contain no whitespace,
+comma, or colon; unset `TMPDIR` falls back to `/tmp`. On schedulers that create
+node-local scratch only after allocation, launch Nextflow inside the allocation
+or set `TMPDIR` to a stable path visible on compute nodes before launching.
 
 ### Windows
 
@@ -163,6 +175,13 @@ ghcr.io/joookerz/sc-pcqtl-saigeqtl:edge
 For a released analysis, run a tagged workflow revision and its matching
 container tags. Container names can be overridden with `--core_container` and
 `--saige_container`.
+
+Core-image R dependencies are built from a dated Posit CRAN snapshot. Each
+image records that repository in `/opt/scpcqtl/manifest/CRAN-repository.txt`
+and includes `R-packages.tsv` and `sessionInfo.txt`. Release tags additionally
+run anonymous-pull, runtime, and complete bundled-example gates, so a release
+fails if either GHCR package is private or the published images cannot finish
+the documented workflow.
 
 sc-pcQTL is CPU-only. It does not use or require a GPU; compute planning should
 focus on CPUs, RAM, storage throughput, and scheduler concurrency.

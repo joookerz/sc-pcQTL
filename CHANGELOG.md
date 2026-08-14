@@ -12,4 +12,6 @@ Versioning after its first stable release.
 - Production-compatible annotation-aware cluster windows and cluster-PC PCA.
 - Bundled semi-synthetic 1000 Genomes EUR example for both pair-test modes.
 - Cross-platform `sc-pcqtl` launcher and no-admin Java/Nextflow installer.
-- Docker, Podman, Apptainer, Singularity, local, and Slurm profiles.
+- Docker, Podman, Apptainer, Singularity, local, Slurm, and SGE/UGE profiles.
+- Hardened clean-host installation, HPC scratch handling, resumable telemetry,
+  runtime provenance, reproducible container builds, and release smoke tests.

@@ -63,5 +63,21 @@ it. Direct Nextflow execution with `-profile docker,example`,
 `podman,example`, or `apptainer,example` remains supported. Add `-resume` to
 reuse completed tasks after interruption.
 
+The tested example defaults run at most two pair tasks and one QTL task at a
+time. Workstations with additional memory may adjust these independently with
+`--example_pair_max_forks` and `--example_qtl_max_forks`; these options affect
+execution concurrency, not statistical results.
+
+## Workstation sizing
+
+The example is CPU-only. Independent clean-host tests completed in about
+4.5 minutes on Linux x86_64 and 19 minutes on Apple Silicon using amd64
+emulation. Approximately 8 GB of Docker memory was sufficient in the Apple
+Silicon test, where the workflow requested at most 6 GB concurrently. Allow at
+least 5 GB of free storage for container layers, Nextflow work files, and
+outputs. These measurements are orientation values rather than performance or
+capacity guarantees; runtime depends strongly on image cache state, CPU,
+storage, and emulation.
+
 The maintainer-only data generator is isolated under `dev/example-data/` and
 is not called during a normal workflow run.

@@ -40,3 +40,60 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  verify-public-release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: publish
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        image: [core, saigeqtl]
+    steps:
+      - name: Resolve release image
+        id: image
+        shell: bash
+        run: |
+          version=${GITHUB_REF_NAME#v}
+          echo "uri=ghcr.io/joookerz/sc-pcqtl-${{ matrix.image }}:${version}" >> "$GITHUB_OUTPUT"
+      - name: Anonymous image pull
+        run: |
+          docker logout ghcr.io >/dev/null 2>&1 || true
+          docker pull --platform linux/amd64 "${{ steps.image.outputs.uri }}"
+      - name: Core runtime smoke test
+        if: matrix.image == 'core'
+        run: |
+          docker run --rm --platform linux/amd64 "${{ steps.image.outputs.uri }}" \
+            sh -c "test -s /opt/scpcqtl/manifest/CRAN-repository.txt && test -s /opt/scpcqtl/manifest/R-packages.tsv && test -s /opt/scpcqtl/manifest/sessionInfo.txt && Rscript -e \"stopifnot(requireNamespace('data.table', quietly=TRUE), requireNamespace('fasthurdle', quietly=TRUE))\" && plink --version"
+      - name: SAIGE-QTL entry-point smoke test
+        if: matrix.image == 'saigeqtl'
+        run: |
+          docker run --rm --platform linux/amd64 --entrypoint sh \
+            "${{ steps.image.outputs.uri }}" -c \
+            'command -v step1_fitNULLGLMM_qtl.R && command -v step2_tests_qtl.R && command -v step3_gene_pvalue_qtl.R'
+
+  verify-release-example:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: verify-public-release
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Nextflow
+        run: |
+          curl -fsSL https://get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+        env:
+          NXF_VER: 25.10.7
+      - name: Run the complete bundled example with release images
+        shell: bash
+        run: |
+          version=${GITHUB_REF_NAME#v}
+          nextflow run . -profile docker,example -ansi-log false \
+            --core_container "ghcr.io/joookerz/sc-pcqtl-core:${version}" \
+            --saige_container "ghcr.io/joookerz/sc-pcqtl-saigeqtl:${version}" \
+            --outdir results/release-example
+          test -s results/release-example/pipeline_info/execution_trace.txt
+          test -s results/release-example/summary/significant_pcqtl_phenotypes.tsv

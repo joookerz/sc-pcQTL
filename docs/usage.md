@@ -141,6 +141,13 @@ Slurm with Apptainer:
 nextflow run joookerz/sc-pcQTL -profile apptainer,slurm [parameters]
 ```
 
+SGE/UGE with Apptainer:
+
+```bash
+nextflow run joookerz/sc-pcQTL -profile apptainer,sge \
+  -c institutional.config [parameters]
+```
+
 Add `-resume` after an interruption. Site-specific resources, queues, and
 container cache paths belong in a separate Nextflow config:
 

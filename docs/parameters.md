@@ -72,6 +72,8 @@ separately and is still modeled.
 | `vr_prune_window` | 200 | PLINK LD-pruning window |
 | `vr_prune_step` | 50 | PLINK LD-pruning step |
 | `vr_prune_r2` | 0.2 | PLINK LD-pruning r-squared threshold |
+| `example_pair_max_forks` | 2 | Concurrent pair tasks in the bundled example only |
+| `example_qtl_max_forks` | 1 | Concurrent QTL tasks in the bundled example only |
 
 Use a custom Nextflow config to override process memory, time, CPU, queue, or
 executor settings. Statistical parameters should be passed on the command

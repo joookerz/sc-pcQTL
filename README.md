@@ -32,7 +32,7 @@ and manuscript figures are intentionally outside this software repository.
 | macOS Intel | Docker Desktop or Podman | Native container architecture |
 | macOS Apple Silicon | Docker Desktop or Podman | `linux/amd64` emulation |
 | Windows 11 | WSL2 with Docker Desktop | Linux compatibility layer |
-| Linux HPC | Apptainer or Singularity, optionally Slurm | Native |
+| Linux HPC | Apptainer or Singularity, optionally Slurm or SGE/UGE | Native |
 
 The workflow uses pinned analysis containers, so users do not install R,
 fasthurdle, PLINK, or SAIGE-QTL packages on the host. Apple Silicon is
