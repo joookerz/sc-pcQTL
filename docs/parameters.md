@@ -1,0 +1,71 @@
+# Parameters
+
+## Required inputs
+
+| Parameter | Meaning |
+|---|---|
+| `input` | CSV samplesheet with `celltype,counts` |
+| `gene_annotation` | Autosomal gene-coordinate TSV |
+| `genotype_prefix` | PLINK prefix containing `{chr}`; required when `run_qtl=true` |
+
+## Manuscript-compatible analysis defaults
+
+| Parameter | Default | Meaning |
+|---|---:|---|
+| `min_cells` | 10000 | Minimum cells for an analyzed cell type |
+| `min_nonzero_fraction` | 0.01 | Required gene nonzero-cell fraction |
+| `pair_scope` | `fast` | `fast` block scheduler or cluster-complete scheduler |
+| `pair_test` | `component_union` | `component_union` or `joint_score` |
+| `count_family` | `poisson` | `poisson` or `negative_binomial` |
+| `pair_alpha` | 0.05 | Family-wise alpha for the pair screen |
+| `max_cluster_genes` | 50 | Maximum sliding-window size |
+| `min_cluster_genes` | 2 | Minimum cluster size |
+| `cluster_density` | 0.70 | Required significant-edge fraction |
+| `pca_variance` | 0.95 | Cumulative variance retained by cluster PCs |
+| `cis_window` | 500000 | Bases added to each side of the cluster span |
+| `qtl_maf` | 0.05 | SAIGE-QTL minimum MAF |
+| `qtl_fdr` | 0.05 | Within-phenotype variant BH threshold |
+
+The component-union threshold is `pair_alpha/M`. The joint-score threshold is
+`pair_alpha/(2M)`. `M` always counts all possible within-chromosome autosomal
+unordered pairs after gene filtering, even when `fast` computes only a subset.
+
+`joint_score` currently requires Poisson counts and fasthurdle 1.2.0 or newer.
+The optional negative-binomial family applies to `component_union` only.
+
+## Input-column defaults
+
+| Parameter | Default |
+|---|---|
+| `donor_col` | `individual` |
+| `cell_id_col` | `barcode` |
+| `gene_col` | `gene_name` |
+| `chromosome_col` | `chromosome` |
+| `start_col` | `start` |
+| `end_col` | `end` |
+| `covariates` | `age,sex,pc1,pc2,pc3,pc4,pc5,pc6,pf1,pf2` |
+| `categorical_covariates` | `sex` |
+| `total_library_col` | `total_read_counts` |
+| `log_library_col` | `log_total_read_counts` |
+
+## Execution and advanced parameters
+
+| Parameter | Default | Meaning |
+|---|---:|---|
+| `outdir` | `results` | Published output directory |
+| `run_qtl` | `true` | Run SAIGE-QTL after phenotype construction |
+| `saige_params` | unset | Optional SAIGE override TSV |
+| `variance_ratio_prefix` | unset | Existing variance-ratio PLINK marker prefix |
+| `save_directional_tests` | `false` | Publish all directional pair-test records |
+| `count_block_size` | 100 | Internal genes per staged expression block |
+| `pair_responses_per_task` | 10 | Response genes per `complete` task |
+| `vr_n_markers` | 10000 | Maximum auto-selected variance-ratio markers |
+| `vr_seed` | 1 | Deterministic marker-selection seed |
+| `vr_geno` | 0.05 | PLINK missingness threshold |
+| `vr_prune_window` | 200 | PLINK LD-pruning window |
+| `vr_prune_step` | 50 | PLINK LD-pruning step |
+| `vr_prune_r2` | 0.2 | PLINK LD-pruning r-squared threshold |
+
+Use a custom Nextflow config to override process memory, time, CPU, queue, or
+executor settings. Statistical parameters should be passed on the command
+line or in a Nextflow parameter file.

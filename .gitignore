@@ -1,0 +1,9 @@
+.nextflow*
+work/
+work-*/
+results/
+.Rhistory
+.RData
+*.log
+*.sif
+tests/output*/

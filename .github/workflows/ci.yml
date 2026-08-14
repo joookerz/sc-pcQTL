@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  nextflow-lint:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        java: ['17', '21']
+        nextflow: ['24.10.8', '25.10.7', '26.04.6']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      - name: Install Nextflow
+        run: |
+          curl -fsSL https://get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+        env:
+          NXF_VER: ${{ matrix.nextflow }}
+      - name: Validate configuration and syntax
+        run: |
+          nextflow -version
+          nextflow config -flat . >/dev/null
+          nextflow lint main.nf
+
+  build-core:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Nextflow
+        run: |
+          curl -fsSL https://get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+        env:
+          NXF_VER: 25.10.7
+      - uses: docker/setup-buildx-action@v3
+      - name: Build core image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: containers/core/Dockerfile
+          push: false
+          load: true
+          tags: sc-pcqtl-core:test
+      - name: Unit tests
+        run: docker run --rm -v "$PWD:/workspace" -w /workspace sc-pcqtl-core:test Rscript tests/testthat.R
+      - name: Core workflow integration tests
+        env:
+          SCPCQTL_TEST_PROFILE: test,docker
+          SCPCQTL_TEST_CONTAINER: sc-pcqtl-core:test
+        run: tests/run_core_integration.sh --core_container sc-pcqtl-core:test

@@ -1,0 +1,7 @@
+name: sc-pcqtl-launcher
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - openjdk=17
+  - nextflow=25.10.7

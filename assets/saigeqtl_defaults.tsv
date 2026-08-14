@@ -1,0 +1,15 @@
+step	parameter	value
+step1	useSparseGRMtoFitNULL	FALSE
+step1	useGRMtoFitNULL	FALSE
+step1	traitType	quantitative
+step1	invNormalize	TRUE
+step1	skipVarianceRatioEstimation	FALSE
+step1	isRemoveZerosinPheno	FALSE
+step1	isCovariateOffset	FALSE
+step1	isCovariateTransform	TRUE
+step1	skipModelFitting	FALSE
+step1	tol	0.00001
+step1	IsOverwriteVarianceRatioFile	TRUE
+step2	minMAF	0.05
+step2	LOCO	FALSE
+step2	markers_per_chunk	10000

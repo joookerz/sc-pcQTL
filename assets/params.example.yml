@@ -1,0 +1,6 @@
+input: assets/samplesheet.example.csv
+gene_annotation: /path/to/genes.tsv
+genotype_prefix: /path/to/full_genome_chr{chr}
+outdir: results
+pair_scope: fast
+pair_test: component_union

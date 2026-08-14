@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/joookerz/sc-pcQTL/main/nextflow_schema.json",
+  "title": "sc-pcQTL parameters",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["input", "gene_annotation"],
+  "allOf": [
+    {
+      "if": {
+        "required": ["run_qtl"],
+        "properties": {"run_qtl": {"const": true}}
+      },
+      "then": {"required": ["genotype_prefix"]}
+    }
+  ],
+  "properties": {
+    "help": {"type": "boolean", "default": false},
+    "input": {"type": "string", "format": "file-path", "description": "CSV samplesheet with celltype and counts columns"},
+    "gene_annotation": {"type": "string", "format": "file-path", "description": "Autosomal gene-coordinate TSV"},
+    "genotype_prefix": {"type": ["string", "null"], "description": "PLINK prefix containing the {chr} placeholder"},
+    "variance_ratio_prefix": {"type": ["string", "null"], "description": "Optional pruned PLINK prefix for variance-ratio estimation"},
+    "saige_params": {"type": ["string", "null"], "format": "file-path"},
+    "outdir": {"type": "string", "default": "results"},
+    "genome_build": {"type": "string", "default": "GRCh38"},
+    "donor_col": {"type": "string", "default": "individual"},
+    "cell_id_col": {"type": "string", "default": "barcode"},
+    "gene_col": {"type": "string", "default": "gene_name"},
+    "chromosome_col": {"type": "string", "default": "chromosome"},
+    "start_col": {"type": "string", "default": "start"},
+    "end_col": {"type": "string", "default": "end"},
+    "covariates": {"type": "string", "default": "age,sex,pc1,pc2,pc3,pc4,pc5,pc6,pf1,pf2"},
+    "categorical_covariates": {"type": "string", "default": "sex"},
+    "total_library_col": {"type": "string", "default": "total_read_counts"},
+    "log_library_col": {"type": "string", "default": "log_total_read_counts"},
+    "min_cells": {"type": "integer", "minimum": 1, "default": 10000},
+    "min_nonzero_fraction": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.01},
+    "count_block_size": {"type": "integer", "minimum": 1, "default": 100},
+    "pair_responses_per_task": {"type": "integer", "minimum": 1, "default": 10},
+    "pair_scope": {"type": "string", "enum": ["fast", "complete"], "default": "fast"},
+    "pair_test": {"type": "string", "enum": ["component_union", "joint_score"], "default": "component_union"},
+    "count_family": {"type": "string", "enum": ["poisson", "negative_binomial"], "default": "poisson"},
+    "pair_alpha": {"type": "number", "exclusiveMinimum": 0, "maximum": 1, "default": 0.05},
+    "max_cluster_genes": {"type": "integer", "minimum": 2, "default": 50},
+    "min_cluster_genes": {"type": "integer", "minimum": 2, "default": 2},
+    "cluster_density": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.7},
+    "pca_variance": {"type": "number", "exclusiveMinimum": 0, "maximum": 1, "default": 0.95},
+    "cis_window": {"type": "integer", "minimum": 0, "default": 500000},
+    "qtl_maf": {"type": "number", "minimum": 0, "maximum": 0.5, "default": 0.05},
+    "qtl_fdr": {"type": "number", "exclusiveMinimum": 0, "maximum": 1, "default": 0.05},
+    "allow_unknown_saige_params": {"type": "boolean", "default": false},
+    "run_qtl": {"type": "boolean", "default": true},
+    "save_directional_tests": {"type": "boolean", "default": false},
+    "vr_n_markers": {"type": "integer", "minimum": 1, "default": 10000},
+    "vr_seed": {"type": "integer", "minimum": 0, "default": 1},
+    "vr_geno": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.05},
+    "vr_prune_window": {"type": "integer", "minimum": 1, "default": 200},
+    "vr_prune_step": {"type": "integer", "minimum": 1, "default": 50},
+    "vr_prune_r2": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.2},
+    "core_container": {"type": "string", "default": "ghcr.io/joookerz/sc-pcqtl-core:edge"},
+    "saige_container": {"type": "string", "default": "ghcr.io/joookerz/sc-pcqtl-saigeqtl:edge"}
+  }
+}

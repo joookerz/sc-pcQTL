@@ -1,0 +1,13 @@
+# Changelog
+
+All notable changes will be documented here. The project follows Semantic
+Versioning after its first stable release.
+
+## Unreleased
+
+- Initial standalone Nextflow implementation from cell-level expression input
+  through SAIGE-QTL summary statistics.
+- Reproducible `component_union` and `joint_score` pair tests.
+- Manuscript-compatible `fast` scheduling and cluster-complete scheduling.
+- Production-compatible annotation-aware cluster windows and cluster-PC PCA.
+- Docker, Apptainer, Singularity, local, and Slurm profiles.
