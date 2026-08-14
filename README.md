@@ -4,11 +4,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Nextflow](https://img.shields.io/badge/Nextflow-25.10.0%2B-23aa62.svg)](https://www.nextflow.io/)
 
-sc-pcQTL is a containerized Nextflow workflow for detecting local
-co-expression clusters from single-cell RNA-seq data and mapping their
-principal-component phenotypes as cis-pcQTLs. It covers the reusable method
-from cell-type-specific expression tables through SAIGE-QTL summary
-statistics.
+sc-pcQTL is a single-cell framework for identifying local co-expression
+clusters and cis-regulatory variants associated with coordinated multi-gene
+expression programs. It combines hurdle-based gene-pair association testing,
+local cluster construction, principal-component phenotype generation, and
+cluster-level cis-QTL mapping.
 
 ## Workflow
 
