@@ -59,3 +59,17 @@ jobs:
           SCPCQTL_TEST_PROFILE: test,docker
           SCPCQTL_TEST_CONTAINER: sc-pcqtl-core:test
         run: tests/run_core_integration.sh --core_container sc-pcqtl-core:test
+      - name: Build mock SAIGE-QTL test image
+        run: |
+          docker build \
+            --build-arg BASE_IMAGE=sc-pcqtl-core:test \
+            --file tests/containers/saige-mock.Dockerfile \
+            --tag sc-pcqtl-saige-mock:test .
+      - name: QTL workflow integration test
+        env:
+          SCPCQTL_TEST_PROFILE: test,docker
+          SCPCQTL_TEST_CONTAINER: sc-pcqtl-core:test
+        run: |
+          tests/run_qtl_mock_integration.sh \
+            --core_container sc-pcqtl-core:test \
+            --saige_container sc-pcqtl-saige-mock:test
