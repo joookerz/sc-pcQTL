@@ -12,7 +12,7 @@ process MERGE_PAIR_TASKS {
     tuple val(celltype), path("${celltype}_pairs"), emit: pairs
 
     script:
-    def inputLines = pair_files.collect { pairFile -> pairFile.toString() }.join('\\n')
+    def inputLines = pair_files.collect { pairFile -> pairFile.toString() }.join('\n')
     """
     printf '%s\n' '${inputLines}' > pair_inputs.txt
     Rscript ${workflow_bin}/merge_pair_tasks.R \

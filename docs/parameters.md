@@ -58,7 +58,7 @@ The optional negative-binomial family applies to `component_union` only.
 | `variance_ratio_prefix` | unset | Existing variance-ratio PLINK marker prefix |
 | `save_directional_tests` | `false` | Publish all directional pair-test records |
 | `count_block_size` | 100 | Internal genes per staged expression block |
-| `pair_responses_per_task` | 10 | Response genes per `complete` task |
+| `pair_responses_per_task` | 10 | Response genes per pair task in either scheduling mode |
 | `vr_n_markers` | 10000 | Maximum auto-selected variance-ratio markers |
 | `vr_seed` | 1 | Deterministic marker-selection seed |
 | `vr_geno` | 0.05 | PLINK missingness threshold |

@@ -10,4 +10,9 @@ variants <- fread(file.path(outdir, "summary", "all_variant_results.tsv.gz"))
 stopifnot(nrow(variants) >= 2L, "pvalue" %in% names(variants), "qvalue" %in% names(variants))
 acat <- fread(file.path(outdir, "summary", "region_acat_results.tsv"))
 stopifnot(nrow(acat) >= 1L, "acat_qvalue" %in% names(acat), acat$acat_significant[[1L]])
+published_null_models <- list.files(
+  file.path(outdir, "qtl", "tasks"), pattern = "^saige_null_model",
+  recursive = TRUE, full.names = TRUE
+)
+stopifnot(length(published_null_models) == 0L)
 message("Mock SAIGE-QTL integration assertions passed")

@@ -53,7 +53,8 @@ test_that("fast and complete schedulers have the documented coverage", {
   fast <- file.path(stage, "fast.tsv")
   complete <- file.path(stage, "complete.tsv")
   expect_equal(system2("Rscript", c(script, "--stage", stage, "--out", fast,
-                                     "--pair_scope", "fast", "--max_cluster_genes", "4")), 0)
+                                     "--pair_scope", "fast", "--max_cluster_genes", "4",
+                                     "--responses_per_task", "2")), 0)
   expect_equal(system2("Rscript", c(script, "--stage", stage, "--out", complete,
                                      "--pair_scope", "complete", "--max_cluster_genes", "4",
                                      "--responses_per_task", "10")), 0)
@@ -61,7 +62,61 @@ test_that("fast and complete schedulers have the documented coverage", {
   complete_summary <- fread(file.path(stage, "complete_summary.tsv"))
   expect_equal(fast_summary$global_unordered_pairs, 15)
   expect_equal(fast_summary$computed_unordered_pairs, 6)
+  expect_equal(fast_summary$n_tasks, 4)
   expect_equal(complete_summary$computed_unordered_pairs, 12)
+})
+
+test_that("joint score zero-component cache is calibrated on independent genes", {
+  set.seed(20260814)
+  n_donors <- 200L
+  cells_per_donor <- 3L
+  n <- n_donors * cells_per_donor
+  donor <- rep(sprintf("D%03d", seq_len(n_donors)), each = cells_per_donor)
+  donor_age <- sample(20:75, n_donors, replace = TRUE)
+  donor_sex <- sample(0:1, n_donors, replace = TRUE)
+  make_gene <- function() {
+    detected <- rbinom(n, 1, 0.45)
+    detected * (1L + rpois(n, 1.2))
+  }
+  counts <- data.table(
+    individual = donor,
+    barcode = sprintf("cell_%04d", seq_len(n)),
+    age = rep(donor_age, each = cells_per_donor),
+    sex = rep(donor_sex, each = cells_per_donor),
+    total_read_counts = rpois(n, 5000) + 1000L,
+    G1 = make_gene(), G2 = make_gene(), G3 = make_gene()
+  )
+  counts[, log_total_read_counts := log(total_read_counts)]
+  annotation <- data.table(
+    gene_name = c("G1", "G2", "G3"), chromosome = 1L,
+    start = c(100L, 200L, 300L), end = c(150L, 250L, 350L)
+  )
+  counts_file <- tempfile(fileext = ".tsv")
+  annotation_file <- tempfile(fileext = ".tsv")
+  stage <- tempfile("scpcqtl-joint-null-")
+  output <- tempfile(fileext = ".tsv.gz")
+  fwrite(counts, counts_file, sep = "\t")
+  fwrite(annotation, annotation_file, sep = "\t")
+  expect_equal(system2("Rscript", c(
+    file.path(root, "bin", "prepare_celltype.R"),
+    "--celltype", "null", "--counts", counts_file,
+    "--annotation", annotation_file, "--outdir", stage,
+    "--covariates", "age,sex", "--categorical_covariates", "sex",
+    "--min_cells", "1", "--min_nonzero_fraction", "0"
+  )), 0)
+  expect_equal(system2("Rscript", c(
+    file.path(root, "bin", "run_pair_task.R"),
+    "--stage", stage, "--out", output, "--celltype", "null",
+    "--chromosome", "1", "--response_start", "1", "--response_end", "3",
+    "--block_start", "1", "--block_end", "3", "--pair_scope", "fast",
+    "--pair_test", "joint_score", "--count_family", "poisson",
+    "--max_cluster_genes", "50", "--covariates", "age,sex"
+  )), 0)
+  result <- fread(output)
+  expect_equal(nrow(result), 6L)
+  expect_true(all(is.finite(result$stat_detection)))
+  expect_lt(max(result$stat_detection), 30)
+  expect_true(any(result$p_joint > 0.05))
 })
 
 test_that("cluster windows retain filtered-out annotated genes as genomic separators", {

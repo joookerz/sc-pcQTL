@@ -39,10 +39,15 @@ for (chr in 1:22) {
       first <- (block - 1L) * genes_per_block + 1L
       last <- min(block * genes_per_block, n)
       if (last <= first) next
-      k <- k + 1L
-      rows[[k]] <- data.table(task_id = k, chromosome = chr,
-                              response_start = first, response_end = last,
-                              block_start = first, block_end = last)
+      for (response_first in seq.int(first, last, by = responses_per_task)) {
+        k <- k + 1L
+        rows[[k]] <- data.table(
+          task_id = k, chromosome = chr,
+          response_start = response_first,
+          response_end = min(last, response_first + responses_per_task - 1L),
+          block_start = first, block_end = last
+        )
+      }
     }
   } else {
     for (first in seq.int(1L, n, by = responses_per_task)) {
@@ -60,7 +65,9 @@ fwrite(tasks, out, sep = "\t")
 counts <- genes[, .(n_genes = .N), by = chromosome]
 m <- counts[, sum(n_genes * (n_genes - 1) / 2)]
 computed <- if (scope == "fast") {
-  tasks[, sum((block_end - block_start + 1) * (block_end - block_start) / 2)]
+  unique(tasks[, .(chromosome, block_start, block_end)])[
+    , sum((block_end - block_start + 1) * (block_end - block_start) / 2)
+  ]
 } else {
   counts[, sum(vapply(n_genes, function(n) sum(pmin(max_genes - 1L, n - seq_len(n))), numeric(1)))]
 }

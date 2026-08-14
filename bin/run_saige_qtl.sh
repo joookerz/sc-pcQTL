@@ -11,15 +11,16 @@ celltype=$1
 cluster=$2
 phenotype=$3
 chromosome=$4
-pheno=$5
-region=$6
-bed=$7
-bim=$8
-fam=$9
-vr_prefix=${10}
-params=${11}
-outdir=${12}
-mkdir -p "${outdir}"
+pheno=$(realpath "$5")
+region=$(realpath "$6")
+bed=$(realpath "$7")
+bim=$(realpath "$8")
+fam=$(realpath "$9")
+vr_prefix=$(realpath -m "${10}")
+params=$(realpath "${11}")
+mkdir -p "${12}"
+outdir=$(realpath "${12}")
+task_dir=$(dirname "${outdir}")
 
 for path in "${pheno}" "${region}" "${bed}" "${bim}" "${fam}" \
             "${vr_prefix}.bed" "${vr_prefix}.bim" "${vr_prefix}.fam" "${params}"; do
@@ -40,7 +41,7 @@ mapfile -t step3_args < <(args_for_step step3)
 
 # Null-model artifacts are task-local intermediates. Keeping them outside the
 # published result directory avoids duplicating large R objects per phenotype.
-prefix="saige_null_model"
+prefix="${task_dir}/saige_null_model"
 association="${outdir}/association.tsv"
 acat="${outdir}/acat.tsv"
 

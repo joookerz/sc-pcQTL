@@ -7,3 +7,4 @@ results/
 *.log
 *.sif
 tests/output*/
+dev/example-data/work/

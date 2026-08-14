@@ -119,7 +119,7 @@ workflow {
     PLAN_PAIR_TASKS(PREPARE_CELLTYPE.out.stage, workflowBin)
 
     pairRows = PLAN_PAIR_TASKS.out.tasks.flatMap { celltype, taskFile -> parseTaskTable(taskFile, celltype) }
-    pairInputs = pairRows.join(PREPARE_CELLTYPE.out.stage)
+    pairInputs = pairRows.combine(PREPARE_CELLTYPE.out.stage, by: 0)
     RUN_PAIR_TASK(pairInputs, workflowBin)
 
     pairGroups = RUN_PAIR_TASK.out.result

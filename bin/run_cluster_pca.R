@@ -19,6 +19,17 @@ covars <- readRDS(file.path(stage, "covariates.rds"))
 missing_covars <- setdiff(covariate_names, names(covars))
 if (length(missing_covars)) stop("Missing PCA/QTL covariates: ", paste(missing_covars, collapse = ", "))
 
+if (!nrow(clusters)) {
+  fwrite(data.table(cluster_id = character(), status = character(), reason = character()),
+         file.path(outdir, "pca_summary.tsv"), sep = "\t")
+  fwrite(data.table(
+    task_id = integer(), celltype = character(), cluster_id = character(),
+    phenotype_id = character(), chromosome = integer(), phenotype_file = character(),
+    region_file = character()
+  ), file.path(outdir, "qtl_tasks.tsv"), sep = "\t")
+  quit(status = 0L)
+}
+
 all_cluster_genes <- unique(unlist(strsplit(clusters$genes, ",", fixed = TRUE)))
 header <- names(fread(counts_file, nrows = 0L))
 available_cluster_genes <- intersect(all_cluster_genes, header)

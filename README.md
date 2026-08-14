@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/joookerz/sc-pcQTL/actions/workflows/ci.yml/badge.svg)](https://github.com/joookerz/sc-pcQTL/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Nextflow](https://img.shields.io/badge/Nextflow-24.10.8%2B-23aa62.svg)](https://www.nextflow.io/)
+[![Nextflow](https://img.shields.io/badge/Nextflow-25.10.0%2B-23aa62.svg)](https://www.nextflow.io/)
 
 sc-pcQTL is a containerized Nextflow workflow for detecting local
 co-expression clusters from single-cell RNA-seq data and mapping their
@@ -29,7 +29,7 @@ The host needs:
 
 - Linux x86_64;
 - Java 17 or newer;
-- Nextflow 24.10.8 or newer, with 25.10.7 recommended;
+- Nextflow 25.10.0 or newer;
 - Docker, Apptainer, or Singularity for analysis dependencies;
 - Slurm only when using the `slurm` execution profile.
 
@@ -37,10 +37,35 @@ Java and Nextflow alone are not sufficient because the workflow executes
 pinned R/fasthurdle and SAIGE-QTL containers. See
 [installation instructions](docs/installation.md).
 
-## Quick Start
+## Run the example
+
+The bundled semi-synthetic example uses public 1000 Genomes EUR genotypes and
+simulated single-cell expression. It runs from input validation through
+SAIGE-QTL:
 
 ```bash
-NXF_VER=25.10.7 nextflow run joookerz/sc-pcQTL \
+nextflow run joookerz/sc-pcQTL \
+  -profile apptainer,example \
+  --outdir results/example_component_union
+```
+
+Run the same data with the joint score pair test:
+
+```bash
+nextflow run joookerz/sc-pcQTL \
+  -profile apptainer,example \
+  --pair_test joint_score \
+  --outdir results/example_joint_score
+```
+
+See [the example documentation](examples/README.md) for its design and
+expected outputs. The dataset demonstrates execution and is not a performance
+benchmark.
+
+## Run your data
+
+```bash
+nextflow run joookerz/sc-pcQTL \
   -profile apptainer,slurm \
   --input samplesheet.csv \
   --gene_annotation genes.tsv \
@@ -78,6 +103,5 @@ within-chromosome autosomal pairs among filtered genes.
 - [Outputs](docs/outputs.md)
 - [Troubleshooting](docs/troubleshooting.md)
 
-The redistributable biological example dataset is reserved under `examples/`.
-Small synthetic fixtures under `tests/fixtures/` are for software validation,
-not biological interpretation.
+The redistributable semi-synthetic example is stored under `examples/`.
+Smaller fixtures under `tests/fixtures/` are used only for software tests.

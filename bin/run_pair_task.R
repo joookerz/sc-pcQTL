@@ -89,7 +89,10 @@ score_response <- function(response_name, predictor_names) {
     }
   }
   if (!is.null(zero_null) && isTRUE(zero_null$convergence == 0)) {
-    zero_null <- tryCatch(prepare_score_cache_zero(zero_null, y, Z_null, weights), error = function(e) NULL)
+    zero_null <- tryCatch(
+      prepare_score_cache_zero(zero_null, y, Z_null, weights = weights),
+      error = function(e) NULL
+    )
     cache <- if (!is.null(zero_null)) zero_null$score_cache else NULL
     if (!is.null(cache) && isTRUE(cache$valid)) {
       for (j in seq_along(predictor_names)) {

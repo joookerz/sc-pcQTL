@@ -87,6 +87,13 @@ under `pipeline_info/variance_ratio/`.
 
 ## Execution profiles
 
+Bundled example with Apptainer:
+
+```bash
+nextflow run joookerz/sc-pcQTL -profile apptainer,example \
+  --outdir results/example_component_union
+```
+
 Docker workstation:
 
 ```bash

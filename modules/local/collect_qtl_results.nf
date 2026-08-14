@@ -12,7 +12,7 @@ process COLLECT_QTL_RESULTS {
     path 'qtl_summary/*', emit: summary
 
     script:
-    def inputLines = result_dirs.collect { resultDir -> resultDir.toString() }.join('\\n')
+    def inputLines = result_dirs.collect { resultDir -> resultDir.toString() }.join('\n')
     """
     printf '%s\n' '${inputLines}' > qtl_inputs.txt
     Rscript ${workflow_bin}/collect_qtl_results.R \

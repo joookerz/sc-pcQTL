@@ -14,6 +14,11 @@ stopifnot(pair$global_unordered_pairs[[1L]] == 6L, pair$computed_unordered_pairs
 stopifnot(identical(pair$pair_test[[1L]], pair_test))
 expected_threshold <- if (pair_test == "joint_score") 1 / 12 else 1 / 6
 stopifnot(isTRUE(all.equal(pair$threshold[[1L]], expected_threshold, tolerance = 1e-12)))
+if (pair_test == "joint_score") {
+  computed <- fread(file.path(outdir, "pairs", "example", "all_computed_pairs.tsv.gz"))
+  stopifnot(any(computed$significant))
+  stopifnot(all(is.finite(computed$stat_joint)), all(is.finite(computed$p_joint)))
+}
 clusters <- fread(file.path(outdir, "clusters", "example", "clusters.tsv"))
 stopifnot(nrow(clusters) >= 1L)
 pca <- fread(file.path(outdir, "phenotypes", "example", "pca_summary.tsv"))

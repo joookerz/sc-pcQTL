@@ -2,7 +2,7 @@
 
 ## Recommended container installation
 
-Install Java 17 and Nextflow 25.10.7, then provide one supported container
+Install Java 17 and Nextflow 25.10.0 or newer, then provide one supported container
 runtime. Analysis R packages do not need to be installed on the host.
 
 ```bash
