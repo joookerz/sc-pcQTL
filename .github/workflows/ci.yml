@@ -77,6 +77,8 @@ jobs:
           push: false
           load: true
           tags: sc-pcqtl-core:test
+          cache-from: type=gha,scope=ci-core
+          cache-to: type=gha,mode=max,scope=ci-core
       - name: Unit tests
         run: docker run --rm -v "$PWD:/workspace" -w /workspace sc-pcqtl-core:test Rscript tests/testthat.R
       - name: Core workflow integration tests
