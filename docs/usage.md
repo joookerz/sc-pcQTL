@@ -87,6 +87,24 @@ under `pipeline_info/variance_ratio/`.
 
 ## Execution profiles
 
+The installed launcher selects a supported runtime automatically:
+
+```bash
+sc-pcqtl doctor
+sc-pcqtl example --outdir results/example_component_union
+sc-pcqtl run [parameters]
+```
+
+Set `SCPCQTL_RUNTIME=docker`, `podman`, `apptainer`, or `singularity` to
+override automatic selection. Advanced users can call Nextflow directly as
+shown below.
+
+On Slurm, append the executor profile without changing the runtime selection:
+
+```bash
+SCPCQTL_EXTRA_PROFILES=slurm sc-pcqtl run -c institutional.config [parameters]
+```
+
 Bundled example with Apptainer:
 
 ```bash
@@ -98,6 +116,12 @@ Docker workstation:
 
 ```bash
 nextflow run joookerz/sc-pcQTL -profile docker [parameters]
+```
+
+Podman workstation:
+
+```bash
+nextflow run joookerz/sc-pcQTL -profile podman [parameters]
 ```
 
 Slurm with Apptainer:

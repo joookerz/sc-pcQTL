@@ -1,9 +1,123 @@
 # Installation
 
-## Recommended container installation
+sc-pcQTL separates the lightweight workflow launcher from the analysis
+software. The host needs Bash, a container runtime, Java 17 or newer, and
+Nextflow 25.10.0 or newer. R, fasthurdle, PLINK, and SAIGE-QTL are supplied by
+pinned containers.
 
-Install Java 17 and Nextflow 25.10.0 or newer, then provide one supported container
-runtime. Analysis R packages do not need to be installed on the host.
+The supported host combinations are Linux x86_64 with Docker, Podman,
+Apptainer, or Singularity; macOS with Docker Desktop or Podman; and WSL2 with
+Docker Desktop. ARM64 hosts require Docker/Podman amd64 emulation because the
+current analysis images are `linux/amd64`.
+
+## One-command user installation
+
+Install and start a container runtime first, then run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/joookerz/sc-pcQTL/main/install.sh | bash
+export PATH="$HOME/.local/bin:$PATH"
+sc-pcqtl doctor
+```
+
+The installer works without administrator privileges on Linux and macOS. It:
+
+1. reuses a compatible Java already on `PATH` or in `JAVA_HOME`;
+2. otherwise installs a private Temurin Java 17 runtime under
+   `~/.local/share/sc-pcqtl`;
+3. installs Nextflow 25.10.7 under the same directory; and
+4. installs `sc-pcqtl` into `~/.local/bin`.
+
+It does not install Docker, Podman, Apptainer, or Singularity because those
+runtimes require platform- or site-specific setup.
+
+After installation, persist the launcher path in the shell configuration:
+
+```bash
+printf '\nexport PATH="$HOME/.local/bin:$PATH"\n' >> "$HOME/.bashrc"
+```
+
+For the default macOS zsh, write the same line to `~/.zshrc` instead.
+
+## Platform setup
+
+### macOS
+
+Install [Docker Desktop](https://docs.docker.com/desktop/setup/install/mac-install/)
+or [Podman](https://podman.io/docs/installation) and start its Linux virtual machine.
+Both Intel and Apple Silicon Macs are supported. The analysis images are
+pinned to `linux/amd64`; Apple Silicon therefore uses transparent emulation
+and may be slower for the SAIGE-QTL stage.
+
+Keep inputs under a directory shared with the container runtime. Docker
+Desktop shares the user home directory by default; external volumes may need
+to be added in Docker Desktop settings.
+
+```bash
+sc-pcqtl doctor
+sc-pcqtl example --outdir results/example_component_union
+```
+
+### Linux workstation
+
+Install either [Docker Engine](https://docs.docker.com/engine/install/) or
+[Podman](https://podman.io/docs/installation) using the operating-system package
+manager. Ensure the current user can run the selected runtime, then install
+the launcher and verify it:
+
+```bash
+sc-pcqtl doctor
+```
+
+The launcher prefers Apptainer, Singularity, Docker, then Podman on Linux. To
+override detection:
+
+```bash
+export SCPCQTL_RUNTIME=docker
+```
+
+### Linux HPC
+
+[Apptainer](https://apptainer.org/docs/admin/main/installation.html) is
+recommended; Singularity remains supported. The runtime must be
+available on compute nodes as well as the login node. Install the launcher in
+the user account and add the Slurm profile with a site-specific configuration:
+
+```bash
+SCPCQTL_RUNTIME=apptainer SCPCQTL_EXTRA_PROFILES=slurm \
+sc-pcqtl run \
+  -c institutional.config \
+  [parameters]
+```
+
+Set a shared cache to prevent repeated image downloads:
+
+```bash
+export NXF_APPTAINER_CACHEDIR=/shared/path/sc-pcqtl-containers
+```
+
+### Windows
+
+Use Windows Subsystem for Linux 2 (WSL2), install Docker Desktop with WSL
+integration, and run the Linux installer from the WSL shell. Native Windows
+PowerShell execution is not supported by Nextflow.
+
+## Advanced installer options
+
+```bash
+bash install.sh \
+  --prefix "$HOME/apps/sc-pcqtl" \
+  --bin-dir "$HOME/bin" \
+  --nextflow-version 25.10.7
+```
+
+Use `--no-java-download` to require an existing Java 17+ installation. The
+same settings can be supplied with `SCPCQTL_INSTALL_ROOT`,
+`SCPCQTL_BIN_DIR`, and `NEXTFLOW_VERSION`.
+
+## Direct Nextflow installation
+
+Users who do not want the launcher can follow the standard Nextflow setup:
 
 ```bash
 java -version
@@ -13,9 +127,8 @@ install -m 0755 nextflow "$HOME/.local/bin/nextflow"
 nextflow -version
 ```
 
-For local execution install Docker. On HPC, Apptainer is recommended; legacy
-Singularity remains supported. The corresponding executable must be visible
-on compute nodes, not only the login node.
+See the [official Nextflow installation guide](https://docs.seqera.io/nextflow/install)
+for supported Java and shell requirements.
 
 The default `edge` images are built from the repository's `main` branch:
 
@@ -28,7 +141,7 @@ For a released analysis, run a tagged workflow revision and its matching
 container tags. Container names can be overridden with `--core_container` and
 `--saige_container`.
 
-## Optional launcher environment
+## Conda launcher environment
 
 `environment-launcher.yml` installs only Java and Nextflow through Conda. A
 container runtime remains a host or cluster prerequisite.

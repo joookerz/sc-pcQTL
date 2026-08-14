@@ -23,19 +23,43 @@ statistics.
 Fine-mapping, colocalization, SMR, S-LDSC, simulations, enrichment analyses,
 and manuscript figures are intentionally outside this software repository.
 
-## Requirements
+## Supported platforms
 
-The host needs:
+| Host | Container runtime | Support |
+|---|---|---|
+| Linux x86_64 | Docker, Podman, Apptainer, or Singularity | Native |
+| Linux ARM64 | Docker or Podman with amd64 emulation | Emulated |
+| macOS Intel | Docker Desktop or Podman | Native container architecture |
+| macOS Apple Silicon | Docker Desktop or Podman | `linux/amd64` emulation |
+| Windows 11 | WSL2 with Docker Desktop | Linux compatibility layer |
+| Linux HPC | Apptainer or Singularity, optionally Slurm | Native |
 
-- Linux x86_64;
-- Java 17 or newer;
-- Nextflow 25.10.0 or newer;
-- Docker, Apptainer, or Singularity for analysis dependencies;
-- Slurm only when using the `slurm` execution profile.
+The workflow uses pinned analysis containers, so users do not install R,
+fasthurdle, PLINK, or SAIGE-QTL packages on the host. Apple Silicon is
+supported through container emulation and is expected to run more slowly than
+an x86_64 Linux host.
 
-Java and Nextflow alone are not sufficient because the workflow executes
-pinned R/fasthurdle and SAIGE-QTL containers. See
-[installation instructions](docs/installation.md).
+## Install
+
+First install and start a supported container runtime. Docker Desktop is the
+recommended workstation runtime; Apptainer is recommended on Linux HPC. Then
+install the user-level launcher, pinned Nextflow, and Java 17 when needed:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/joookerz/sc-pcQTL/main/install.sh | bash
+export PATH="$HOME/.local/bin:$PATH"
+sc-pcqtl doctor
+```
+
+The installer does not require administrator privileges and does not modify
+the system Java installation. See the
+[platform-specific installation guide](docs/installation.md) for macOS,
+Linux, WSL2, HPC, Conda, and manual installation.
+
+Official runtime setup: [Docker Desktop for macOS](https://docs.docker.com/desktop/setup/install/mac-install/),
+[Docker Engine](https://docs.docker.com/engine/install/),
+[Podman](https://podman.io/docs/installation), or
+[Apptainer](https://apptainer.org/docs/admin/main/installation.html).
 
 ## Run the example
 
@@ -44,16 +68,13 @@ simulated single-cell expression. It runs from input validation through
 SAIGE-QTL:
 
 ```bash
-nextflow run joookerz/sc-pcQTL \
-  -profile apptainer,example \
-  --outdir results/example_component_union
+sc-pcqtl example --outdir results/example_component_union
 ```
 
 Run the same data with the joint score pair test:
 
 ```bash
-nextflow run joookerz/sc-pcQTL \
-  -profile apptainer,example \
+sc-pcqtl example \
   --pair_test joint_score \
   --outdir results/example_joint_score
 ```
@@ -65,8 +86,7 @@ benchmark.
 ## Run your data
 
 ```bash
-nextflow run joookerz/sc-pcQTL \
-  -profile apptainer,slurm \
+sc-pcqtl run \
   --input samplesheet.csv \
   --gene_annotation genes.tsv \
   --genotype_prefix '/data/genotype_chr{chr}' \
@@ -75,8 +95,11 @@ nextflow run joookerz/sc-pcQTL \
   -resume
 ```
 
-Use `-profile docker` on a Docker workstation. Run
-`nextflow run joookerz/sc-pcQTL --help` for a concise command summary.
+The launcher selects Docker/Podman on macOS and
+Apptainer/Singularity/Docker/Podman on Linux. Set `SCPCQTL_RUNTIME` to select
+one explicitly. Run `sc-pcqtl run --help` for a concise workflow summary.
+Direct `nextflow run` commands remain supported for advanced and institutional
+deployments.
 
 ## Statistical Modes
 

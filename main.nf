@@ -29,8 +29,8 @@ Required:
   --genotype_prefix PREFIX   PLINK prefix with {chr}; required unless --run_qtl false
 
 Execution:
-  -profile docker            Local/container execution
-  -profile apptainer,slurm   HPC execution
+  -profile docker|podman     macOS or Linux workstation
+  -profile apptainer,slurm   Linux HPC execution
 
 Core options:
   --pair_scope fast|complete

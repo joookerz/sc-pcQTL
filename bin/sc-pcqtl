@@ -1,0 +1,217 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+launcher_version='0.1.0-dev'
+pipeline=${SCPCQTL_PIPELINE:-joookerz/sc-pcQTL}
+revision=${SCPCQTL_REVISION:-main}
+nextflow_bin=${SCPCQTL_NEXTFLOW:-nextflow}
+
+usage() {
+  cat <<'EOF'
+sc-pcqtl: portable launcher for the sc-pcQTL Nextflow workflow
+
+Usage:
+  sc-pcqtl doctor
+  sc-pcqtl example [Nextflow options]
+  sc-pcqtl run [pipeline parameters]
+  sc-pcqtl nextflow [Nextflow arguments]
+  sc-pcqtl version
+
+Environment overrides:
+  SCPCQTL_RUNTIME   docker, podman, apptainer, or singularity
+  SCPCQTL_PIPELINE  Nextflow project name or local project directory
+  SCPCQTL_REVISION  Git branch or release tag (default: main)
+  SCPCQTL_NEXTFLOW  Nextflow executable
+  SCPCQTL_EXTRA_PROFILES  Additional profiles, for example slurm
+EOF
+}
+
+die() {
+  printf 'sc-pcqtl: %s\n' "$*" >&2
+  exit 1
+}
+
+has_command() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+runtime_command() {
+  case "$1" in
+    docker) printf '%s\n' docker ;;
+    podman) printf '%s\n' podman ;;
+    apptainer) printf '%s\n' apptainer ;;
+    singularity) printf '%s\n' singularity ;;
+    *) return 1 ;;
+  esac
+}
+
+runtime_ready() {
+  case "$1" in
+    docker) docker info >/dev/null 2>&1 ;;
+    podman) podman info >/dev/null 2>&1 ;;
+    apptainer) apptainer --version >/dev/null 2>&1 ;;
+    singularity) singularity --version >/dev/null 2>&1 ;;
+    *) return 1 ;;
+  esac
+}
+
+select_runtime() {
+  local requested=${SCPCQTL_RUNTIME:-}
+  local candidate candidates
+  if [[ -n "$requested" ]]; then
+    runtime_command "$requested" >/dev/null || \
+      die "SCPCQTL_RUNTIME must be docker, podman, apptainer, or singularity"
+    has_command "$(runtime_command "$requested")" || \
+      die "requested runtime '$requested' is not available in PATH"
+    runtime_ready "$requested" || \
+      die "requested runtime '$requested' is installed but not ready"
+    printf '%s\n' "$requested"
+    return
+  fi
+
+  case "$(uname -s):$(uname -m)" in
+    Darwin:*) candidates='docker podman' ;;
+    Linux:aarch64|Linux:arm64) candidates='docker podman' ;;
+    Linux:*) candidates='apptainer singularity docker podman' ;;
+    *) candidates='docker podman apptainer singularity' ;;
+  esac
+  for candidate in $candidates; do
+    if has_command "$(runtime_command "$candidate")" && runtime_ready "$candidate"; then
+      printf '%s\n' "$candidate"
+      return
+    fi
+  done
+  die 'no ready container runtime found; run sc-pcqtl doctor for guidance'
+}
+
+check_java() {
+  local line version major
+  if ! has_command java; then
+    printf '[missing] Java 17 or newer\n'
+    return 1
+  fi
+  line=$(java -version 2>&1 | head -n 1)
+  version=$(printf '%s\n' "$line" | sed -E 's/.*version "([^"]+)".*/\1/')
+  major=${version%%.*}
+  if [[ "$major" == '1' ]]; then
+    version=${version#1.}
+    major=${version%%.*}
+  fi
+  if [[ "$major" =~ ^[0-9]+$ ]] && (( major >= 17 )); then
+    printf '[ok] Java %s\n' "$version"
+    return 0
+  fi
+  printf '[incompatible] Java %s; version 17 or newer is required\n' "$version"
+  return 1
+}
+
+check_nextflow() {
+  local output version major minor
+  if ! command -v "$nextflow_bin" >/dev/null 2>&1; then
+    printf '[missing] Nextflow executable: %s\n' "$nextflow_bin"
+    return 1
+  fi
+  if ! output=$("$nextflow_bin" -version 2>&1); then
+    printf '[failed] Nextflow could not start: %s\n' "$nextflow_bin"
+    return 1
+  fi
+  if [[ "$output" =~ ([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+    version=${BASH_REMATCH[1]}
+    major=${version%%.*}
+    minor=${version#*.}
+    minor=${minor%%.*}
+    if (( major > 25 || (major == 25 && minor >= 10) )); then
+      printf '[ok] Nextflow %s\n' "$version"
+      return 0
+    fi
+    printf '[incompatible] Nextflow %s; version 25.10.0 or newer is required\n' "$version"
+    return 1
+  fi
+  printf '[failed] Could not determine the Nextflow version: %s\n' "$nextflow_bin"
+  return 1
+}
+
+check_runtime() {
+  local runtime=$1
+  case "$runtime" in
+    docker)
+      docker info >/dev/null 2>&1 || {
+        printf '[failed] Docker is installed but its daemon is unavailable\n'
+        return 1
+      }
+      ;;
+    podman)
+      podman info >/dev/null 2>&1 || {
+        printf '[failed] Podman is installed but its machine/service is unavailable\n'
+        return 1
+      }
+      ;;
+    apptainer) apptainer --version >/dev/null 2>&1 ;;
+    singularity) singularity --version >/dev/null 2>&1 ;;
+  esac
+  printf '[ok] Container runtime: %s\n' "$runtime"
+}
+
+doctor() {
+  local status=0 runtime=''
+  printf 'Host: %s %s\n' "$(uname -s)" "$(uname -m)"
+  check_java || status=1
+  check_nextflow || status=1
+  if runtime=$(select_runtime 2>/dev/null); then
+    check_runtime "$runtime" || status=1
+  else
+    printf '[missing] No usable Docker/Podman or Linux Apptainer/Singularity runtime\n'
+    status=1
+  fi
+  if [[ "$(uname -m)" == 'arm64' || "$(uname -m)" == 'aarch64' ]]; then
+    printf '[info] ARM64 hosts use the pinned linux/amd64 containers through emulation\n'
+  fi
+  return "$status"
+}
+
+print_run() {
+  local runtime=$1 profiles=$2
+  printf 'Runtime: %s\n' "$runtime"
+  if [[ -d "$pipeline" ]]; then
+    printf 'Pipeline: %s (local checkout)\n' "$pipeline"
+  else
+    printf 'Pipeline: %s (revision %s)\n' "$pipeline" "$revision"
+  fi
+  printf 'Profiles: %s\n' "$profiles"
+}
+
+run_pipeline() {
+  local mode=$1
+  shift
+  local runtime profiles
+  local -a command_args
+  runtime=$(select_runtime)
+  profiles=$runtime
+  [[ "$mode" == 'example' ]] && profiles="${runtime},example"
+  if [[ -n "${SCPCQTL_EXTRA_PROFILES:-}" ]]; then
+    [[ "$SCPCQTL_EXTRA_PROFILES" =~ ^[A-Za-z0-9_.-]+(,[A-Za-z0-9_.-]+)*$ ]] || \
+      die 'SCPCQTL_EXTRA_PROFILES must be a comma-separated profile list'
+    profiles="${profiles},${SCPCQTL_EXTRA_PROFILES}"
+  fi
+
+  print_run "$runtime" "$profiles"
+
+  command_args=(run "$pipeline")
+  if [[ ! -d "$pipeline" && -n "$revision" ]]; then
+    command_args+=(-r "$revision")
+  fi
+  command_args+=(-profile "$profiles")
+  exec "$nextflow_bin" "${command_args[@]}" "$@"
+}
+
+command_name=${1:-help}
+[[ $# -gt 0 ]] && shift
+case "$command_name" in
+  doctor) doctor ;;
+  example) run_pipeline example "$@" ;;
+  run) run_pipeline run "$@" ;;
+  nextflow) exec "$nextflow_bin" "$@" ;;
+  version|--version|-v) printf 'sc-pcqtl %s\n' "$launcher_version" ;;
+  help|--help|-h) usage ;;
+  *) usage >&2; die "unknown command: $command_name" ;;
+esac

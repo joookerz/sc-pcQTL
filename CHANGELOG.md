@@ -11,4 +11,5 @@ Versioning after its first stable release.
 - Manuscript-compatible `fast` scheduling and cluster-complete scheduling.
 - Production-compatible annotation-aware cluster windows and cluster-PC PCA.
 - Bundled semi-synthetic 1000 Genomes EUR example for both pair-test modes.
-- Docker, Apptainer, Singularity, local, and Slurm profiles.
+- Cross-platform `sc-pcqtl` launcher and no-admin Java/Nextflow installer.
+- Docker, Podman, Apptainer, Singularity, local, and Slurm profiles.

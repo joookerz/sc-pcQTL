@@ -6,6 +6,21 @@ on:
   workflow_dispatch:
 
 jobs:
+  launcher-test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Validate portable installer and launcher
+        run: |
+          bash -n install.sh bin/sc-pcqtl tests/test_installer.sh tests/test_launcher.sh
+          bash install.sh --help >/dev/null
+          tests/test_installer.sh
+          tests/test_launcher.sh
+
   nextflow-lint:
     runs-on: ubuntu-22.04
     strategy:

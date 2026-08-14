@@ -46,20 +46,22 @@ the same 503 donors and ordering.
 From a cloned repository, run the manuscript-default component-union mode:
 
 ```bash
-nextflow run . -profile apptainer,example \
+SCPCQTL_PIPELINE="$PWD" sc-pcqtl example \
   --outdir results/example_component_union
 ```
 
 Run the same input with the joint score test:
 
 ```bash
-nextflow run . -profile apptainer,example \
+SCPCQTL_PIPELINE="$PWD" sc-pcqtl example \
   --pair_test joint_score \
   --outdir results/example_joint_score
 ```
 
-Use `-profile docker,example` on a Docker workstation. Add `-resume` to reuse
-completed tasks after interruption.
+The launcher detects a compatible runtime. Set `SCPCQTL_RUNTIME` to override
+it. Direct Nextflow execution with `-profile docker,example`,
+`podman,example`, or `apptainer,example` remains supported. Add `-resume` to
+reuse completed tasks after interruption.
 
 The maintainer-only data generator is isolated under `dev/example-data/` and
 is not called during a normal workflow run.
