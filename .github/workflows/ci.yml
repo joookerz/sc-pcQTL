@@ -16,9 +16,10 @@ jobs:
           java-version: '17'
       - name: Validate portable installer and launcher
         run: |
-          bash -n install.sh bin/sc-pcqtl tests/test_installer.sh tests/test_launcher.sh
+          bash -n install.sh bin/sc-pcqtl tests/test_installer.sh tests/test_installer_download.sh tests/test_launcher.sh tests/test_container_override.sh
           bash install.sh --help >/dev/null
           tests/test_installer.sh
+          tests/test_installer_download.sh
           tests/test_launcher.sh
 
   nextflow-lint:
@@ -43,7 +44,12 @@ jobs:
         run: |
           nextflow -version
           nextflow config -flat . >/dev/null
+          for profile in docker podman apptainer singularity; do
+            nextflow config -profile "${profile},example" -flat . |
+              grep -Fq "process.'withLabel:process_qtl'.container = { params.saige_container }"
+          done
           nextflow lint main.nf
+          tests/test_container_override.sh
 
   build-core:
     if: github.event_name == 'workflow_dispatch'

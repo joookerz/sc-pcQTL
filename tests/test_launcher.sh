@@ -13,6 +13,16 @@ EOF
 cat > "$runtime/bin/docker" <<'EOF'
 #!/usr/bin/env bash
 [[ "${1:-}" == info ]] && exit 0
+if [[ "${1:-}" == run ]]; then
+  while (( $# )); do
+    if [[ "$1" == -v ]]; then
+      host_path=${2%%:*}
+      printf 'sc-pcqtl-runtime-ok\n' > "$host_path/result"
+      exit 0
+    fi
+    shift
+  done
+fi
 exit 0
 EOF
 cat > "$runtime/bin/podman" <<'EOF'
@@ -42,6 +52,11 @@ export SCPCQTL_RUNTIME=docker
 export SCPCQTL_NEXTFLOW="$runtime/bin/nextflow"
 
 "$root/bin/sc-pcqtl" doctor >/dev/null
+"$root/bin/sc-pcqtl" doctor --deep >/dev/null
+if "$root/bin/sc-pcqtl" doctor --unknown >/dev/null 2>&1; then
+  printf 'Unknown doctor option was not rejected.\n' >&2
+  exit 1
+fi
 "$root/bin/sc-pcqtl" example --outdir example-output >/dev/null
 "$root/bin/sc-pcqtl" run --input samplesheet.csv >/dev/null
 

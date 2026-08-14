@@ -11,7 +11,7 @@ usage() {
 sc-pcqtl: portable launcher for the sc-pcQTL Nextflow workflow
 
 Usage:
-  sc-pcqtl doctor
+  sc-pcqtl doctor [--deep]
   sc-pcqtl example [Nextflow options]
   sc-pcqtl run [pipeline parameters]
   sc-pcqtl nextflow [Nextflow arguments]
@@ -23,6 +23,7 @@ Environment overrides:
   SCPCQTL_REVISION  Git branch or release tag (default: main)
   SCPCQTL_NEXTFLOW  Nextflow executable
   SCPCQTL_EXTRA_PROFILES  Additional profiles, for example slurm
+  SCPCQTL_SMOKE_IMAGE  Small image used by doctor --deep
 EOF
 }
 
@@ -152,13 +153,79 @@ check_runtime() {
   printf '[ok] Container runtime: %s\n' "$runtime"
 }
 
+check_runtime_deep() {
+  local runtime=$1
+  local image=${SCPCQTL_SMOKE_IMAGE:-docker.io/library/alpine:3.20}
+  local image_ref=$image
+  local scratch log result
+  scratch=$(mktemp -d "${TMPDIR:-/tmp}/scpcqtl-runtime-check.XXXXXX")
+  log="$scratch/runtime.log"
+  result="$scratch/result"
+
+  case "$runtime" in
+    docker|podman)
+      if ! "$runtime" run --rm --platform linux/amd64 \
+        --cpu-shares 1024 --memory 64m \
+        -v "$scratch:/scpcqtl-probe" \
+        "$image" sh -c \
+        'printf "sc-pcqtl-runtime-ok\n" > /scpcqtl-probe/result' \
+        >"$log" 2>&1; then
+        printf '[failed] %s could not pull/run the smoke image with a writable bind mount and resource limits\n' "$runtime"
+        sed -n '1,20p' "$log"
+        rm -rf "$scratch"
+        return 1
+      fi
+      ;;
+    apptainer|singularity)
+      [[ "$image_ref" == *://* ]] || image_ref="docker://$image_ref"
+      if ! "$runtime" exec --bind "$scratch:/scpcqtl-probe" \
+        "$image_ref" sh -c \
+        'printf "sc-pcqtl-runtime-ok\n" > /scpcqtl-probe/result' \
+        >"$log" 2>&1; then
+        printf '[failed] %s could not pull/run the smoke image with a writable bind mount\n' "$runtime"
+        sed -n '1,20p' "$log"
+        rm -rf "$scratch"
+        return 1
+      fi
+      ;;
+  esac
+
+  if [[ ! -f "$result" ]] || [[ "$(<"$result")" != 'sc-pcqtl-runtime-ok' ]]; then
+    printf '[failed] Container smoke test did not write the expected host-mounted output\n'
+    rm -rf "$scratch"
+    return 1
+  fi
+  rm -rf "$scratch"
+  if [[ "$runtime" == 'docker' || "$runtime" == 'podman' ]]; then
+    printf '[ok] Container pull, amd64 execution, bind mount, and resource smoke test\n'
+  else
+    printf '[ok] Container pull, amd64 execution, and bind mount smoke test\n'
+  fi
+}
+
 doctor() {
-  local status=0 runtime=''
+  local status=0 runtime='' deep=false
+  while (( $# )); do
+    case "$1" in
+      --deep) deep=true ;;
+      *) die "unknown doctor option: $1" ;;
+    esac
+    shift
+  done
   printf 'Host: %s %s\n' "$(uname -s)" "$(uname -m)"
   check_java || status=1
   check_nextflow || status=1
   if runtime=$(select_runtime 2>/dev/null); then
     check_runtime "$runtime" || status=1
+    if [[ "$runtime" == 'podman' ]] && \
+      [[ "$(podman info --format '{{.Host.Security.Rootless}}' 2>/dev/null || true)" == 'true' ]]; then
+      printf '[info] Rootless Podman requires configured subordinate IDs and cgroup delegation\n'
+    fi
+    if [[ "$deep" == true ]]; then
+      check_runtime_deep "$runtime" || status=1
+    else
+      printf '[info] Run sc-pcqtl doctor --deep to test image pull, execution, and bind mounts\n'
+    fi
   else
     printf '[missing] No usable Docker/Podman or Linux Apptainer/Singularity runtime\n'
     status=1
@@ -207,7 +274,7 @@ run_pipeline() {
 command_name=${1:-help}
 [[ $# -gt 0 ]] && shift
 case "$command_name" in
-  doctor) doctor ;;
+  doctor) doctor "$@" ;;
   example) run_pipeline example "$@" ;;
   run) run_pipeline run "$@" ;;
   nextflow) exec "$nextflow_bin" "$@" ;;

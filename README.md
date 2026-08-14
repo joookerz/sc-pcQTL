@@ -51,6 +51,10 @@ export PATH="$HOME/.local/bin:$PATH"
 sc-pcqtl doctor
 ```
 
+Run `sc-pcqtl doctor --deep` once after installation to verify that the
+selected runtime can pull and execute an amd64 image, mount a writable host
+directory, and, for Docker/Podman, apply resource limits.
+
 The installer does not require administrator privileges and does not modify
 the system Java installation. See the
 [platform-specific installation guide](docs/installation.md) for macOS,
@@ -107,6 +111,8 @@ Apptainer/Singularity/Docker/Podman on Linux. Set `SCPCQTL_RUNTIME` to select
 one explicitly. Run `sc-pcqtl run --help` for a concise workflow summary.
 Direct `nextflow run` commands remain supported for advanced and institutional
 deployments.
+
+The workflow is CPU-only and does not require a GPU.
 
 ## Statistical Modes
 

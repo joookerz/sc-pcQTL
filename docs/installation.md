@@ -18,6 +18,7 @@ Install and start a container runtime first, then run:
 curl -fsSL https://raw.githubusercontent.com/joookerz/sc-pcQTL/main/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"
 sc-pcqtl doctor
+sc-pcqtl doctor --deep
 ```
 
 The installer works without administrator privileges on Linux and macOS. It:
@@ -41,7 +42,9 @@ bash install.sh
 ```
 
 They must also authenticate their selected container runtime to GHCR if the
-analysis images remain private.
+analysis images remain private. GitHub package visibility is configured
+separately from repository visibility; public package visibility permits
+anonymous pulls.
 
 After installation, persist the launcher path in the shell configuration:
 
@@ -79,7 +82,15 @@ the launcher and verify it:
 
 ```bash
 sc-pcqtl doctor
+sc-pcqtl doctor --deep
 ```
+
+For rootless Podman, the operating system must provide subordinate UID/GID
+ranges and cgroup delegation for the current user. A successful `podman info`
+does not prove that image pulls, bind mounts, and Nextflow resource flags work;
+`doctor --deep` tests those operations with a small public image. If the deep
+check fails, configure rootless Podman with the system administrator or use
+Docker/Apptainer instead.
 
 The launcher prefers Apptainer, Singularity, Docker, then Podman on Linux. To
 override detection:
@@ -152,6 +163,9 @@ ghcr.io/joookerz/sc-pcqtl-saigeqtl:edge
 For a released analysis, run a tagged workflow revision and its matching
 container tags. Container names can be overridden with `--core_container` and
 `--saige_container`.
+
+sc-pcQTL is CPU-only. It does not use or require a GPU; compute planning should
+focus on CPUs, RAM, storage throughput, and scheduler concurrency.
 
 ## Conda launcher environment
 

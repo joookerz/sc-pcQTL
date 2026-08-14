@@ -133,6 +133,7 @@ fi
 
 nextflow_dir="$install_root/nextflow/$nextflow_version"
 nextflow_executable="$nextflow_dir/nextflow"
+nextflow_home="$install_root/nextflow-home"
 if [[ ! -x "$nextflow_executable" ]]; then
   mkdir -p "$nextflow_dir" "$temporary_dir/nextflow"
   if [[ -n "${SCPCQTL_NEXTFLOW_SOURCE:-}" ]]; then
@@ -142,12 +143,40 @@ if [[ ! -x "$nextflow_executable" ]]; then
     curl -fsSL https://get.nextflow.io -o "$temporary_dir/get-nextflow.sh"
     (
       cd "$temporary_dir/nextflow"
-      PATH="$(dirname "$java_executable"):$PATH" NXF_VER="$nextflow_version" \
-        bash "$temporary_dir/get-nextflow.sh" >/dev/null
+      export PATH="$(dirname "$java_executable"):$PATH"
+      export NXF_VER="$nextflow_version"
+      export NXF_HOME="$nextflow_home"
+      [[ -n "$java_home" ]] && export JAVA_HOME="$java_home"
+      bash < "$temporary_dir/get-nextflow.sh" >/dev/null
     )
+    [[ -x "$temporary_dir/nextflow/nextflow" ]] || {
+      printf 'Nextflow bootstrap did not create an executable.\n' >&2
+      exit 1
+    }
     install -m 0755 "$temporary_dir/nextflow/nextflow" "$nextflow_executable"
   fi
 fi
+
+nextflow_output=$(
+  export PATH="$(dirname "$java_executable"):$PATH"
+  export NXF_HOME="$nextflow_home"
+  [[ -n "$java_home" ]] && export JAVA_HOME="$java_home"
+  "$nextflow_executable" -version 2>&1
+) || {
+  printf 'Installed Nextflow could not start.\n%s\n' "$nextflow_output" >&2
+  exit 1
+}
+if [[ "$nextflow_output" =~ ([0-9]+\.[0-9]+\.[0-9]+(-edge)?) ]]; then
+  installed_nextflow_version=${BASH_REMATCH[1]}
+else
+  printf 'Could not determine installed Nextflow version.\n%s\n' "$nextflow_output" >&2
+  exit 1
+fi
+[[ "$installed_nextflow_version" == "$nextflow_version" ]] || {
+  printf 'Nextflow version mismatch: requested %s, installed %s\n' \
+    "$nextflow_version" "$installed_nextflow_version" >&2
+  exit 1
+}
 
 launcher_source=''
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || true)
@@ -163,6 +192,7 @@ mkdir -p "$install_root/bin"
 install -m 0755 "$launcher_source" "$install_root/bin/sc-pcqtl"
 
 quoted_nextflow=$(printf '%q' "$nextflow_executable")
+quoted_nextflow_home=$(printf '%q' "$nextflow_home")
 quoted_launcher=$(printf '%q' "$install_root/bin/sc-pcqtl")
 {
   printf '%s\n' '#!/usr/bin/env bash'
@@ -171,6 +201,8 @@ quoted_launcher=$(printf '%q' "$install_root/bin/sc-pcqtl")
     printf 'export JAVA_HOME=%s\n' "$quoted_java_home"
     printf '%s\n' 'export PATH="$JAVA_HOME/bin:$PATH"'
   fi
+  printf 'if [[ -z "${NXF_HOME:-}" ]]; then export NXF_HOME=%s; fi\n' \
+    "$quoted_nextflow_home"
   cat <<EOF
 export SCPCQTL_NEXTFLOW=$quoted_nextflow
 exec $quoted_launcher "\$@"
