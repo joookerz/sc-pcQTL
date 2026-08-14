@@ -31,6 +31,18 @@ The installer works without administrator privileges on Linux and macOS. It:
 It does not install Docker, Podman, Apptainer, or Singularity because those
 runtimes require platform- or site-specific setup.
 
+While the repository is private, collaborators should install from an
+authenticated clone instead of the public `curl` command:
+
+```bash
+git clone git@github.com:joookerz/sc-pcQTL.git
+cd sc-pcQTL
+bash install.sh
+```
+
+They must also authenticate their selected container runtime to GHCR if the
+analysis images remain private.
+
 After installation, persist the launcher path in the shell configuration:
 
 ```bash
