@@ -13,11 +13,10 @@ nk,/absolute/path/nk_counts.tsv.gz
 Cell-type identifiers may contain letters, numbers, dots, underscores, and
 hyphens. Each `counts` file is a wide, tab-separated table with one cell per
 row. Relative count paths are resolved against the samplesheet directory. The
-manuscript defaults expect these columns:
+minimum column structure is:
 
 ```text
-individual barcode age sex pc1 pc2 pc3 pc4 pc5 pc6 pf1 pf2
-total_read_counts log_total_read_counts GENE1 GENE2 ...
+individual barcode GENE1 GENE2 ...
 ```
 
 `individual` is the donor identifier and `barcode` is a unique cell
@@ -25,12 +24,24 @@ identifier. Gene columns must be finite and non-negative. The manuscript
 analysis used SCTransform-corrected OneK1K counts; applying the workflow to a
 different expression scale requires independent calibration.
 
-Configured covariates are donor-level values and must be constant across all
-cells from the same donor within a cell type. Library-size columns are
-cell-level and are checked separately.
+The manuscript-compatible default additionally uses `age`, `sex`, `pc1`-
+`pc6`, `pf1`, and `pf2`. These names are defaults, not fixed input
+requirements. Only columns selected with `--covariates` are required. For
+example:
 
-Column names and the covariate list are configurable. Categorical covariates
-must also be listed in `--categorical_covariates`.
+```bash
+sc-pcqtl run \
+  --covariates 'age,batch,ancestry_pc1,ancestry_pc2' \
+  --categorical_covariates 'batch' \
+  [other parameters]
+```
+
+To fit models without additional donor covariates, use
+`--covariates '' --categorical_covariates ''`. Library size remains included
+in the hurdle model independently of this list. Configured covariates must be
+constant across all cells from the same donor within a cell type. Library-size
+columns are cell-level and are checked separately. Column names are otherwise
+configurable.
 
 ### Library size
 

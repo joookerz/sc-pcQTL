@@ -91,9 +91,16 @@ sc-pcqtl run \
   --gene_annotation genes.tsv \
   --genotype_prefix '/data/genotype_chr{chr}' \
   --variance_ratio_prefix /data/pruned_markers \
+  --covariates 'age,batch,ancestry_pc1,ancestry_pc2' \
+  --categorical_covariates 'batch' \
   --outdir results \
   -resume
 ```
+
+The covariate names above are illustrative. The software defaults reproduce
+the manuscript analysis, but users should replace them with donor-level
+columns available in their own data; additional covariates may also be
+omitted.
 
 The launcher selects Docker/Podman on macOS and
 Apptainer/Singularity/Docker/Podman on Linux. Set `SCPCQTL_RUNTIME` to select

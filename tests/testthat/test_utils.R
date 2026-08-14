@@ -14,6 +14,7 @@ test_that("pair canonicalization is deterministic", {
 
 test_that("chromosomes and active covariates are normalized", {
   expect_equal(normalize_chr(c("chr1", "2", "X")), c(1L, 2L, NA_integer_))
+  expect_length(split_csv_arg(""), 0L)
   covars <- data.table(variable = 1:3, constant = 1, group = factor(c("a", "b", "a")))
   expect_equal(active_covariates(covars, c("variable", "constant", "group")), c("variable", "group"))
   expect_error(safe_celltype("not safe"), "Cell-type IDs")
@@ -165,6 +166,23 @@ test_that("library size is reused or deterministically computed", {
   expect_equal(qc$library_size_source, "computed_from_annotated_expression_columns")
 })
 
+test_that("count input can omit optional donor covariates", {
+  outdir <- tempfile("scpcqtl-no-covariates-")
+  status <- system2("Rscript", c(
+    file.path(root, "bin", "prepare_celltype.R"),
+    "--celltype", "no_covariates",
+    "--counts", file.path(root, "tests", "fixtures", "counts.tsv"),
+    "--annotation", file.path(root, "tests", "fixtures", "genes.tsv"),
+    "--outdir", outdir, "--covariates=", "--categorical_covariates=",
+    "--min_cells", "1", "--min_nonzero_fraction", "0"
+  ))
+  expect_equal(status, 0)
+  covars <- readRDS(file.path(outdir, "covariates.rds"))
+  expect_equal(names(covars), c(
+    "individual", "cell_id", "total_read_counts", "log_total_read_counts"
+  ))
+})
+
 test_that("cell types below the cell-count threshold stop before expression staging", {
   outdir <- tempfile("scpcqtl-ineligible-")
   status <- system2("Rscript", c(
@@ -208,6 +226,14 @@ test_that("SAIGE-QTL overrides are resolved while workflow-owned fields are prot
   expect_equal(resolved[step == "step1" & parameter == "maxiter", value], "30")
   expect_equal(resolved[step == "step1" & parameter == "covarColList", value], "age,sex")
   expect_equal(resolved[step == "step2" & parameter == "minMAF", value], "0.1")
+
+  expect_equal(system2("Rscript", c(
+    resolver, "--defaults", defaults, "--user", user, "--out", output,
+    "--covariates="
+  )), 0)
+  resolved_without_covariates <- fread(output, colClasses = "character")
+  expect_false(any(resolved_without_covariates$parameter %in%
+    c("covarColList", "sampleCovarColList")))
 
   fwrite(data.table(step = "step1", parameter = "traitType", value = "binary"), user, sep = "\t")
   status <- suppressWarnings(system2("Rscript", c(

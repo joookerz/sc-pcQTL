@@ -7,7 +7,9 @@ args <- parse_cli()
 defaults_file <- required_arg(args, "defaults")
 out <- required_arg(args, "out")
 user_file <- args$user %||% ""
-covariates <- args$covariates %||% "age,sex,pc1,pc2,pc3,pc4,pc5,pc6,pf1,pf2"
+covariates <- paste(split_csv_arg(
+  args$covariates %||% "age,sex,pc1,pc2,pc3,pc4,pc5,pc6,pf1,pf2"
+), collapse = ",")
 qtl_maf <- as.numeric(args$qtl_maf %||% 0.05)
 allow_unknown <- as_flag(args$allow_unknown %||% "false")
 
@@ -21,8 +23,10 @@ set_value <- function(step, parameter, new_value) {
   if (any(hit)) resolved[hit, value := as.character(new_value)]
   else resolved <<- rbind(resolved, data.table(step = step, parameter = parameter, value = as.character(new_value)))
 }
-set_value("step1", "covarColList", covariates)
-set_value("step1", "sampleCovarColList", covariates)
+if (nzchar(covariates)) {
+  set_value("step1", "covarColList", covariates)
+  set_value("step1", "sampleCovarColList", covariates)
+}
 set_value("step2", "minMAF", qtl_maf)
 
 protected <- c(

@@ -35,6 +35,7 @@ Execution:
 Core options:
   --pair_scope fast|complete
   --pair_test component_union|joint_score
+  --covariates LIST         Comma-separated donor covariates; may be empty
   --saige_params PATH        Optional step,parameter,value override table
   --outdir PATH              Output directory (default: results)
 
