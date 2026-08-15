@@ -109,8 +109,6 @@ one explicitly. Run `sc-pcqtl run --help` for a concise workflow summary.
 Direct `nextflow run` commands remain supported for advanced and institutional
 deployments.
 
-The workflow is CPU-only and does not require a GPU.
-
 ## Statistical Modes
 
 The manuscript-compatible defaults are `--pair_scope fast` and
