@@ -20,9 +20,6 @@ cluster-level cis-QTL mapping.
 6. Test cluster-PC cis associations with SAIGE-QTL and report within-phenotype
    Benjamini-Hochberg results.
 
-Fine-mapping, colocalization, SMR, S-LDSC, simulations, enrichment analyses,
-and manuscript figures are intentionally outside this software repository.
-
 ## Supported platforms
 
 | Host | Container runtime | Support |
