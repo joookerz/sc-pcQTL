@@ -32,9 +32,10 @@ jobs:
           distribution: temurin
           java-version: '17'
       - name: Validate installer with macOS system Bash
+        env:
+          SCPCQTL_TEST_BASH: /bin/bash
         run: |
           /bin/bash --version
-          export PATH="/usr/bin:/bin"
           /bin/bash -n install.sh tests/test_installer.sh tests/test_installer_download.sh
           /bin/bash tests/test_installer.sh
           /bin/bash tests/test_installer_download.sh

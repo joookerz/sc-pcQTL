@@ -3,6 +3,7 @@ set -euo pipefail
 
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/scpcqtl-installer-test.XXXXXX")
+installer_bash=${SCPCQTL_TEST_BASH:-bash}
 trap 'rm -rf "$scratch"' EXIT
 mkdir -p "$scratch/source" "$scratch/java17/bin" "$scratch/java8/bin"
 
@@ -41,7 +42,7 @@ run_installer() {
   SCPCQTL_BIN_DIR="$2" \
   SCPCQTL_NEXTFLOW_SOURCE="$scratch/source/nextflow" \
   SCPCQTL_LAUNCHER_SOURCE="$root/bin/sc-pcqtl" \
-  bash "$root/install.sh" --no-java-download >/dev/null
+  "$installer_bash" "$root/install.sh" --no-java-download >/dev/null
 }
 
 run_installer "$scratch/install" "$scratch/bin"
@@ -71,7 +72,7 @@ SCPCQTL_INSTALL_ROOT="$scratch/pointer" \
 SCPCQTL_BIN_DIR="$scratch/pointer-bin" \
 SCPCQTL_NEXTFLOW_SOURCE="$scratch/source/nextflow" \
 SCPCQTL_LAUNCHER_SOURCE="$root/bin/sc-pcqtl" \
-bash "$root/install.sh" --no-java-download >/dev/null
+"$installer_bash" "$root/install.sh" --no-java-download >/dev/null
 EXPECTED_JAVA_CMD="$scratch/pointer/jvm/temurin-17-test/bin/java" \
   "$scratch/pointer-bin/sc-pcqtl" nextflow -version | \
   grep -Fq 'nextflow version 25.10.7'
@@ -82,7 +83,7 @@ if PATH="$scratch/java8/bin:/usr/bin:/bin" \
   SCPCQTL_BIN_DIR="$scratch/incompatible-bin" \
   SCPCQTL_NEXTFLOW_SOURCE="$scratch/source/nextflow" \
   SCPCQTL_LAUNCHER_SOURCE="$root/bin/sc-pcqtl" \
-  bash "$root/install.sh" --no-java-download >/dev/null 2>&1; then
+  "$installer_bash" "$root/install.sh" --no-java-download >/dev/null 2>&1; then
   printf 'Installer accepted Java 8 with --no-java-download.\n' >&2
   exit 1
 fi
