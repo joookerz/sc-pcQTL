@@ -12,13 +12,13 @@ cluster-level cis-QTL mapping.
 
 ## Workflow
 
-1. Exclude cell types below a configurable cell-count threshold.
-2. Filter genes by their nonzero-cell fraction.
-3. Test local gene-gene associations with Poisson-binomial hurdle models.
-4. Call non-overlapping local clusters with a greedy sliding window.
-5. Build centered, unscaled cluster-PC phenotypes.
-6. Test cluster-PC cis associations with SAIGE-QTL and report within-phenotype
-   Benjamini-Hochberg results.
+1. Prepare cell-type-specific expression data and retain adequately represented
+   cell types and genes.
+2. Identify co-expression among neighboring genes using single-cell hurdle
+   models.
+3. Group associated genes into local co-expression clusters.
+4. Summarize each cluster with principal-component expression phenotypes.
+5. Map cis genetic associations for cluster phenotypes with SAIGE-QTL.
 
 ## Supported platforms
 
