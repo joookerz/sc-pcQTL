@@ -107,13 +107,17 @@ write_java_home_pointer() {
 cleanup() {
   local path
   rm -rf "$temporary_dir"
-  for path in "${cleanup_files[@]}"; do
-    [[ ! -e "$path" ]] || rm -f -- "$path"
-  done
-  for path in "${cleanup_dirs[@]}"; do
-    [[ -z "$path" || "$path" == "$keep_java_dir" || ! -e "$path" ]] || \
-      rm -rf -- "$path"
-  done
+  if (( ${#cleanup_files[@]} > 0 )); then
+    for path in "${cleanup_files[@]}"; do
+      [[ ! -e "$path" ]] || rm -f -- "$path"
+    done
+  fi
+  if (( ${#cleanup_dirs[@]} > 0 )); then
+    for path in "${cleanup_dirs[@]}"; do
+      [[ -z "$path" || "$path" == "$keep_java_dir" || ! -e "$path" ]] || \
+        rm -rf -- "$path"
+    done
+  fi
 }
 
 mkdir -p "$install_root" "$bin_dir"

@@ -23,6 +23,22 @@ jobs:
           tests/test_clean_host_install.sh
           tests/test_launcher.sh
 
+  installer-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Validate installer with macOS system Bash
+        run: |
+          /bin/bash --version
+          export PATH="/usr/bin:/bin"
+          /bin/bash -n install.sh tests/test_installer.sh tests/test_installer_download.sh
+          /bin/bash tests/test_installer.sh
+          /bin/bash tests/test_installer_download.sh
+
   nextflow-lint:
     runs-on: ubuntu-22.04
     strategy:
