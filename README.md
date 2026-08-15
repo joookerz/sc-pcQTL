@@ -64,9 +64,9 @@ Official runtime setup: [Docker Desktop for macOS](https://docs.docker.com/deskt
 
 ## Run the example
 
-The bundled semi-synthetic example uses public 1000 Genomes EUR genotypes and
-simulated single-cell expression. It runs from input validation through
-cis-pcQTL association results:
+The bundled example uses public 1000 Genomes EUR genotypes and simulated
+single-cell expression. It runs from input validation through cis-pcQTL
+association results:
 
 ```bash
 sc-pcqtl example --outdir results/example_component_union
@@ -136,5 +136,5 @@ within-chromosome autosomal pairs among filtered genes.
 - [Outputs](docs/outputs.md)
 - [Troubleshooting](docs/troubleshooting.md)
 
-The redistributable semi-synthetic example is stored under `examples/`.
+The redistributable example is stored under `examples/`.
 Smaller fixtures under `tests/fixtures/` are used only for software tests.

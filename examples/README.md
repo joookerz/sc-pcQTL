@@ -1,4 +1,4 @@
-# Semi-synthetic example
+# Example dataset
 
 This directory contains a complete, redistributable sc-pcQTL input dataset.
 It combines public phased genotypes from the 1000 Genomes Project 30x GRCh38
