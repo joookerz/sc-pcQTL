@@ -18,7 +18,7 @@ cluster-level cis-QTL mapping.
    models.
 3. Group associated genes into local co-expression clusters.
 4. Summarize each cluster with principal-component expression phenotypes.
-5. Map cis genetic associations for cluster phenotypes with SAIGE-QTL.
+5. Map cis genetic associations for cluster-derived phenotypes.
 
 ## Supported platforms
 
@@ -31,10 +31,10 @@ cluster-level cis-QTL mapping.
 | Windows 11 | WSL2 with Docker Desktop | Linux compatibility layer |
 | Linux HPC | Apptainer or Singularity, optionally Slurm or SGE/UGE | Native |
 
-The workflow uses pinned analysis containers, so users do not install R,
-fasthurdle, PLINK, or SAIGE-QTL packages on the host. Apple Silicon is
-supported through container emulation and is expected to run more slowly than
-an x86_64 Linux host.
+The workflow uses pinned analysis containers, so users do not need to install
+individual analysis dependencies on the host. Apple Silicon is supported
+through container emulation and is expected to run more slowly than an x86_64
+Linux host.
 
 ## Install
 
@@ -66,7 +66,7 @@ Official runtime setup: [Docker Desktop for macOS](https://docs.docker.com/deskt
 
 The bundled semi-synthetic example uses public 1000 Genomes EUR genotypes and
 simulated single-cell expression. It runs from input validation through
-SAIGE-QTL:
+cis-pcQTL association results:
 
 ```bash
 sc-pcqtl example --outdir results/example_component_union

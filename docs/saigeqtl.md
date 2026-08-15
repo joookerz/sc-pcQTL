@@ -3,6 +3,12 @@
 The pinned SAIGE-QTL image is based on version 0.3.4. Built-in defaults are in
 `assets/saigeqtl_defaults.tsv` and reproduce the manuscript analysis.
 
+For general SAIGE-QTL usage and explanations of individual options, consult
+the official [SAIGE-QTL documentation](https://weizhou0.github.io/SAIGE-QTL-doc/),
+[quick-start guide](https://weizhou0.github.io/SAIGE-QTL-doc/docs/quickstart.html),
+and [parameter reference](https://weizhou0.github.io/SAIGE-QTL-doc/docs/parameters.html).
+The settings below describe how those options are supplied through sc-pcQTL.
+
 ## Override table
 
 Pass optional settings with `--saige_params overrides.tsv`:
