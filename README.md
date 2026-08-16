@@ -137,6 +137,3 @@ within-chromosome autosomal pairs among filtered genes.
 
 Publication citation forthcoming. Citation details will be added here when
 available. Until then, use the software citation in [`CITATION.cff`](CITATION.cff).
-
-The redistributable example is stored under `examples/`.
-Smaller fixtures under `tests/fixtures/` are used only for software tests.
