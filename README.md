@@ -72,17 +72,9 @@ association results:
 sc-pcqtl example --outdir results/example_component_union
 ```
 
-Run the same data with the joint score pair test:
-
-```bash
-sc-pcqtl example \
-  --pair_test joint_score \
-  --outdir results/example_joint_score
-```
-
-See [the example documentation](examples/README.md) for its design and
-expected outputs. The dataset demonstrates execution and is not a performance
-benchmark.
+See [the example documentation](examples/README.md) for its design, expected
+outputs, and optional pair-test modes. The dataset demonstrates execution and
+is not a performance benchmark.
 
 ## Run your data
 
