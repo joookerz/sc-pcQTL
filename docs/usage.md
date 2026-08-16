@@ -101,7 +101,7 @@ The installed launcher selects a supported runtime automatically:
 
 ```bash
 sc-pcqtl doctor
-sc-pcqtl example --outdir results/example_component_union
+sc-pcqtl example --outdir results/example
 sc-pcqtl run [parameters]
 ```
 
@@ -119,7 +119,7 @@ Bundled example with Apptainer:
 
 ```bash
 nextflow run joookerz/sc-pcQTL -profile apptainer,example \
-  --outdir results/example_component_union
+  --outdir results/example
 ```
 
 Docker workstation:

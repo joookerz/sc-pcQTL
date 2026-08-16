@@ -70,7 +70,7 @@ to be added in Docker Desktop settings.
 
 ```bash
 sc-pcqtl doctor
-sc-pcqtl example --outdir results/example_component_union
+sc-pcqtl example --outdir results/example
 ```
 
 ### Linux workstation

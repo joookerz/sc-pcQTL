@@ -47,7 +47,7 @@ From a cloned repository, run the default component-union mode:
 
 ```bash
 SCPCQTL_PIPELINE="$PWD" sc-pcqtl example \
-  --outdir results/example_component_union
+  --outdir results/example
 ```
 
 Run the same input with the joint score test:

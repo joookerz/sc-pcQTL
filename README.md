@@ -69,7 +69,7 @@ single-cell expression. It runs from input validation through cis-pcQTL
 association results:
 
 ```bash
-sc-pcqtl example --outdir results/example_component_union
+sc-pcqtl example --outdir results/example
 ```
 
 See [the example documentation](examples/README.md) for its design, expected
