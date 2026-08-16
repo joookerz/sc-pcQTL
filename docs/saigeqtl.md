@@ -1,7 +1,8 @@
 # SAIGE-QTL configuration
 
 The pinned SAIGE-QTL image is based on version 0.3.4. Built-in defaults are in
-`assets/saigeqtl_defaults.tsv` and reproduce the manuscript analysis.
+`assets/saigeqtl_defaults.tsv` and define the workflow's reference QTL
+configuration.
 
 For general SAIGE-QTL usage and explanations of individual options, consult
 the official [SAIGE-QTL documentation](https://weizhou0.github.io/SAIGE-QTL-doc/),

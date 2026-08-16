@@ -8,7 +8,7 @@
 | `gene_annotation` | Autosomal gene-coordinate TSV |
 | `genotype_prefix` | PLINK prefix containing `{chr}`; required when `run_qtl=true` |
 
-## Manuscript-compatible analysis defaults
+## Default analysis configuration
 
 | Parameter | Default | Meaning |
 |---|---:|---|
@@ -48,12 +48,12 @@ The optional negative-binomial family applies to `component_union` only.
 | `total_library_col` | `total_read_counts` |
 | `log_library_col` | `log_total_read_counts` |
 
-The covariate defaults reproduce the manuscript analysis; they are not a
-fixed input schema. Replace `covariates` with a comma-separated list of
-donor-level columns present in the input, and list the categorical subset in
-`categorical_covariates`. Both may be set to an empty string when no
-additional donor covariates are required. Library size is configured
-separately and is still modeled.
+The covariate defaults provide a reference configuration; they are not a fixed
+input schema. Replace `covariates` with a comma-separated list of donor-level
+columns present in the input, and list the categorical subset in
+`categorical_covariates`. Both may be set to an empty string when no additional
+donor covariates are required. Library size is configured separately and is
+still modeled.
 
 ## Execution and advanced parameters
 

@@ -20,14 +20,13 @@ individual barcode GENE1 GENE2 ...
 ```
 
 `individual` is the donor identifier and `barcode` is a unique cell
-identifier. Gene columns must be finite and non-negative. The manuscript
-analysis used SCTransform-corrected OneK1K counts; applying the workflow to a
-different expression scale requires independent calibration.
+identifier. Gene columns must be finite and non-negative. The default settings
+were calibrated with SCTransform-corrected OneK1K counts; applying the workflow
+to a different expression scale requires independent calibration.
 
-The manuscript-compatible default additionally uses `age`, `sex`, `pc1`-
-`pc6`, `pf1`, and `pf2`. These names are defaults, not fixed input
-requirements. Only columns selected with `--covariates` are required. For
-example:
+The default covariate configuration additionally uses `age`, `sex`, `pc1`-
+`pc6`, `pf1`, and `pf2`. These names are defaults, not fixed input requirements.
+Only columns selected with `--covariates` are required. For example:
 
 ```bash
 sc-pcqtl run \

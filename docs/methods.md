@@ -27,7 +27,7 @@ either direction passes.
 
 `fast` partitions filtered genes on each chromosome into non-overlapping
 blocks of no more than `max_cluster_genes` and tests all pairs within each
-block. This reproduces the production scheduling used for the manuscript.
+block. This is the default block-scheduling strategy.
 
 `complete` tests every pair separated by at most
 `max_cluster_genes - 1` ranks among filtered genes. This guarantees coverage

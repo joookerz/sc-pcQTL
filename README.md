@@ -98,10 +98,9 @@ sc-pcqtl run \
   -resume
 ```
 
-The covariate names above are illustrative. The software defaults reproduce
-the manuscript analysis, but users should replace them with donor-level
-columns available in their own data; additional covariates may also be
-omitted.
+The covariate names above are illustrative. Users should replace them with
+donor-level columns available in their own data; additional covariates may
+also be omitted.
 
 The launcher selects Docker/Podman on macOS and
 Apptainer/Singularity/Docker/Podman on Linux. Set `SCPCQTL_RUNTIME` to select
@@ -111,7 +110,7 @@ deployments.
 
 ## Statistical Modes
 
-The manuscript-compatible defaults are `--pair_scope fast` and
+The default statistical mode uses `--pair_scope fast` and
 `--pair_test component_union`. `fast` evaluates non-overlapping genomic blocks
 of at most 50 genes. `complete` guarantees coverage of all pairs that could
 occur together in a cluster of the configured maximum size, including pairs
@@ -133,6 +132,11 @@ within-chromosome autosomal pairs among filtered genes.
 - [SAIGE-QTL customization](docs/saigeqtl.md)
 - [Outputs](docs/outputs.md)
 - [Troubleshooting](docs/troubleshooting.md)
+
+## Citation
+
+Publication citation forthcoming. Citation details will be added here when
+available. Until then, use the software citation in [`CITATION.cff`](CITATION.cff).
 
 The redistributable example is stored under `examples/`.
 Smaller fixtures under `tests/fixtures/` are used only for software tests.

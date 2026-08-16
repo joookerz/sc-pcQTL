@@ -43,7 +43,7 @@ the same 503 donors and ordering.
 
 ## Run
 
-From a cloned repository, run the manuscript-default component-union mode:
+From a cloned repository, run the default component-union mode:
 
 ```bash
 SCPCQTL_PIPELINE="$PWD" sc-pcqtl example \

@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "If you use sc-pcQTL, please cite this software and the accompanying manuscript."
+message: "If you use sc-pcQTL, please cite this software. Publication citation forthcoming."
 title: "sc-pcQTL"
 type: software
 version: 0.1.0-dev
