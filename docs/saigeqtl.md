@@ -1,8 +1,9 @@
-# SAIGE-QTL configuration
+# SAIGE-QTL parameter customization
 
-The pinned SAIGE-QTL image is based on version 0.3.4. Built-in defaults are in
-`assets/saigeqtl_defaults.tsv` and define the workflow's reference QTL
-configuration.
+sc-pcQTL supports user-defined SAIGE-QTL options through an optional parameter
+override table. The pinned SAIGE-QTL image is based on version 0.3.4, and the
+built-in settings in `assets/saigeqtl_defaults.tsv` are used when an option is
+not overridden.
 
 For general SAIGE-QTL usage and explanations of individual options, consult
 the official [SAIGE-QTL documentation](https://weizhou0.github.io/SAIGE-QTL-doc/),
@@ -10,9 +11,9 @@ the official [SAIGE-QTL documentation](https://weizhou0.github.io/SAIGE-QTL-doc/
 and [parameter reference](https://weizhou0.github.io/SAIGE-QTL-doc/docs/parameters.html).
 The settings below describe how those options are supplied through sc-pcQTL.
 
-## Override table
+## Custom parameter table
 
-Pass optional settings with `--saige_params overrides.tsv`:
+Pass custom settings with `--saige_params overrides.tsv`:
 
 ```text
 step	parameter	value

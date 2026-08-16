@@ -61,7 +61,7 @@ still modeled.
 |---|---:|---|
 | `outdir` | `results` | Published output directory |
 | `run_qtl` | `true` | Run SAIGE-QTL after phenotype construction |
-| `saige_params` | unset | Optional SAIGE override TSV |
+| `saige_params` | unset | Custom SAIGE-QTL parameter table |
 | `variance_ratio_prefix` | unset | Existing variance-ratio PLINK marker prefix |
 | `save_directional_tests` | `false` | Publish all directional pair-test records |
 | `count_block_size` | 100 | Internal genes per staged expression block |
